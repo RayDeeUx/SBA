@@ -1,25 +1,25 @@
 package codes.biscuit.skyblockaddons.utils.data;
 
 import codes.biscuit.skyblockaddons.SkyblockAddons;
+import codes.biscuit.skyblockaddons.asm.SkyblockAddonsASMTransformer;
 import codes.biscuit.skyblockaddons.core.Language;
-import codes.biscuit.skyblockaddons.core.OnlineData;
+import codes.biscuit.skyblockaddons.features.PetManager;
+import codes.biscuit.skyblockaddons.utils.pojo.OnlineData;
 import codes.biscuit.skyblockaddons.core.Translations;
 import codes.biscuit.skyblockaddons.core.seacreatures.SeaCreature;
 import codes.biscuit.skyblockaddons.core.seacreatures.SeaCreatureManager;
 import codes.biscuit.skyblockaddons.exceptions.DataLoadingException;
 import codes.biscuit.skyblockaddons.features.SkillXpManager;
 import codes.biscuit.skyblockaddons.features.cooldowns.CooldownManager;
-import codes.biscuit.skyblockaddons.features.enchantedItemBlacklist.EnchantedItemLists;
-import codes.biscuit.skyblockaddons.features.enchantedItemBlacklist.EnchantedItemPlacementBlocker;
 import codes.biscuit.skyblockaddons.features.enchants.EnchantManager;
 import codes.biscuit.skyblockaddons.misc.scheduler.ScheduledTask;
 import codes.biscuit.skyblockaddons.misc.scheduler.SkyblockRunnable;
-import codes.biscuit.skyblockaddons.tweaker.SkyblockAddonsTransformer;
 import codes.biscuit.skyblockaddons.utils.ItemUtils;
 import codes.biscuit.skyblockaddons.utils.Utils;
 import codes.biscuit.skyblockaddons.utils.data.requests.*;
 import codes.biscuit.skyblockaddons.utils.skyblockdata.CompactorItem;
 import codes.biscuit.skyblockaddons.utils.skyblockdata.ContainerData;
+import codes.biscuit.skyblockaddons.utils.skyblockdata.PetItem;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -105,7 +105,7 @@ public class DataUtils {
      * This is set to {@code true} if the mod is running in production or if it's running in a dev environment that has
      * the environment variable {@code FETCH_DATA_ONLINE}.
      */
-    public static final boolean USE_ONLINE_DATA = !SkyblockAddonsTransformer.isDeobfuscated() ||
+    public static final boolean USE_ONLINE_DATA = !SkyblockAddonsASMTransformer.isDeobfuscated() ||
             System.getenv().containsKey("FETCH_DATA_ONLINE");
 
     private static String path;
@@ -121,8 +121,7 @@ public class DataUtils {
         }
         connectionManager.setMaxTotal(5);
         connectionManager.setDefaultMaxPerRoute(5);
-        // Disable online fetching due to EOL
-        // registerRemoteRequests();
+        registerRemoteRequests();
     }
 
     //TODO: Migrate all data file loading to this class
@@ -159,14 +158,13 @@ public class DataUtils {
         // Localized Strings
         loadLocalizedStrings(false);
 
-        // Enchanted Item Blacklist
-        path = "/enchantedItemLists.json";
-        try (   InputStream inputStream = DataUtils.class.getResourceAsStream(path);
+        // Default language en_US
+        try (   InputStream inputStream = DataUtils.class.getClassLoader().getResourceAsStream("lang/en_US.json");
                 InputStreamReader inputStreamReader = new InputStreamReader(Objects.requireNonNull(inputStream),
                         StandardCharsets.UTF_8)){
-            EnchantedItemPlacementBlocker.setItemLists(gson.fromJson(inputStreamReader, EnchantedItemLists.class));
+            Translations.setDefaultLangJson(gson.fromJson(inputStreamReader, JsonObject.class));
         } catch (Exception ex) {
-            handleLocalFileReadException(path,ex);
+           handleLocalFileReadException(path,ex);
         }
 
         // Containers
@@ -229,6 +227,15 @@ public class DataUtils {
         } catch (Exception ex) {
             handleLocalFileReadException(path,ex);
         }
+
+        // Pet Items Data
+        path = "/petItems.json";
+        try (InputStream inputStream = DataUtils.class.getResourceAsStream(path);
+             InputStreamReader inputStreamReader = new InputStreamReader(Objects.requireNonNull(inputStream), StandardCharsets.UTF_8)){
+            PetManager.setPetItems(gson.fromJson(inputStreamReader, new TypeToken<HashMap<String, PetItem>>() {}.getType()));
+        } catch (Exception ex) {
+            handleLocalFileReadException(path,ex);
+        }
     }
 
     /*
@@ -268,6 +275,17 @@ public class DataUtils {
             } catch (InterruptedException | ExecutionException | NullPointerException | IllegalArgumentException e) {
                 handleOnlineFileLoadException(Objects.requireNonNull(request), e);
             }
+        }
+    }
+
+    public static void loadOnlineData(RemoteFileRequest<?> request) {
+        request.execute(futureRequestExecutionService);
+
+        try {
+            loadOnlineFile(request);
+        } catch (InterruptedException | ExecutionException | NullPointerException | IllegalArgumentException e) {
+            logger.error(String.format("Failed to load \"%s\" from the server.",
+                    getFileNameFromUrlString(request.getURL())));
         }
     }
 
@@ -333,7 +351,7 @@ public class DataUtils {
                             try {
                                 loadOnlineFile(localizedStringsRequest);
                             } catch (InterruptedException | ExecutionException | NullPointerException | IllegalArgumentException e) {
-                                handleOnlineFileLoadException(Objects.requireNonNull(localizedStringsRequest), e);
+//                                handleOnlineFileLoadException(Objects.requireNonNull(localizedStringsRequest), e);
                             }
                             cancel();
                         }
@@ -374,17 +392,19 @@ public class DataUtils {
             }
 
             ChatComponentText failureMessageComponent = new ChatComponentText(
-                    Translations.getMessage("messages.fileFetchFailed", EnumChatFormatting.AQUA
-                                    + SkyblockAddons.MOD_NAME + EnumChatFormatting.RED,
-                            failedRequests.size()));
-            IChatComponent buttonRowComponent = new ChatComponentText("[" +
-                    Translations.getMessage("messages.copy") + "]").setChatStyle(
-                            new ChatStyle().setColor(EnumChatFormatting.WHITE).setBold(true).setChatClickEvent(
-                                    new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/sba internal copy %s",
-                                            errorMessageBuilder))));
-            buttonRowComponent.appendText("  ");
-            buttonRowComponent.appendSibling(new ChatComponentText("[Discord]").setChatStyle(new ChatStyle()
-                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/PqTAEek"))));
+                    Translations.getMessage(
+                            "messages.fileFetchFailed",
+                            EnumChatFormatting.AQUA + SkyblockAddons.MOD_NAME + EnumChatFormatting.RED, failedRequests.size()
+                    )
+            );
+            IChatComponent buttonRowComponent = new ChatComponentText("[" + Translations.getMessage("messages.copy") + "]")
+                    .setChatStyle(new ChatStyle().setColor(EnumChatFormatting.WHITE).setChatClickEvent(
+                            new ClickEvent(
+                                    ClickEvent.Action.RUN_COMMAND,
+                                    String.format("/sba internal copy %s", errorMessageBuilder)
+                            )
+                    )
+            );
             failureMessageComponent.appendText("\n").appendSibling(buttonRowComponent);
 
             main.getUtils().sendMessage(failureMessageComponent, false);
@@ -407,16 +427,17 @@ public class DataUtils {
 
     private static void registerRemoteRequests() {
         remoteRequests.add(new OnlineDataRequest());
-/*        if (SkyblockAddons.getInstance().getConfigValues().getLanguage() != Language.ENGLISH) {
-            remoteRequests.add(new LocalizedStringsRequest(SkyblockAddons.getInstance().getConfigValues().getLanguage()));
-        }*/
-        remoteRequests.add(new EnchantedItemListsRequest());
+//        if (SkyblockAddons.getInstance().getConfigValues().getLanguage() != Language.ENGLISH) {
+//            remoteRequests.add(new LocalizedStringsRequest(SkyblockAddons.getInstance().getConfigValues().getLanguage()));
+//        }
         remoteRequests.add(new ContainersRequest());
         remoteRequests.add(new CompactorItemsRequest());
         remoteRequests.add(new SeaCreaturesRequest());
         remoteRequests.add(new EnchantmentsRequest());
         remoteRequests.add(new CooldownsRequest());
         remoteRequests.add(new SkillXpRequest());
+        remoteRequests.add(new MayorRequest());
+        remoteRequests.add(new PetItemsRequest());
     }
 
     /**

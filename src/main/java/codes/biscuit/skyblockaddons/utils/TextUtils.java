@@ -1,6 +1,7 @@
 package codes.biscuit.skyblockaddons.utils;
 
 import codes.biscuit.skyblockaddons.SkyblockAddons;
+import codes.biscuit.skyblockaddons.core.Feature;
 import com.google.gson.JsonObject;
 import net.minecraft.util.IChatComponent;
 
@@ -21,19 +22,24 @@ public class TextUtils {
      * Hypixel uses US number format.
      */
     public static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance(Locale.US);
-
+    /**
+     * Number format with thousands separators disabled, used for displaying numbers in Hypixel's old (no separators)
+     * style
+     */
+    public static final NumberFormat NUMBER_FORMAT_NO_GROUPING = NumberFormat.getInstance(Locale.US);
     private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)§[0-9A-FK-ORZ]");
-    private static final Pattern STRIP_ICONS_PATTERN = Pattern.compile("[♲Ⓑ⚒ቾ]+");
-    private static final Pattern STRIP_PREFIX_PATTERN = Pattern.compile("\\[[^\\[\\]]*\\]");
+    private static final Pattern STRIP_ICONS_PATTERN = Pattern.compile("\\[✌]|[♲Ⓑ⚒ቾ]+");
+    private static final Pattern STRIP_PREFIX_PATTERN = Pattern.compile("\\[\\d+]");
     private static final Pattern REPEATED_COLOR_PATTERN = Pattern.compile("(?i)(§[0-9A-FK-ORZ])+");
     private static final Pattern NUMBERS_SLASHES = Pattern.compile("[^0-9 /]");
     private static final Pattern SCOREBOARD_CHARACTERS = Pattern.compile("[^a-z A-Z:0-9_/'.!§\\[\\]❤]");
     private static final Pattern FLOAT_CHARACTERS = Pattern.compile("[^.0-9\\-]");
     private static final Pattern INTEGER_CHARACTERS = Pattern.compile("[^0-9]");
     private static final Pattern TRIM_WHITESPACE_RESETS = Pattern.compile("^(?:\\s|§r)*|(?:\\s|§r)*$");
-    private static final Pattern USERNAME_PATTERN = Pattern.compile("[A-Za-z0-9_]+");
+    private static final Pattern USERNAME_PATTERN = Pattern.compile("^(?:\\[.+?] )?(?<username>\\w+)(?: \\[.+?])?$");
     private static final Pattern RESET_CODE_PATTERN = Pattern.compile("(?i)§R");
     private static final Pattern MAGNITUDE_PATTERN = Pattern.compile("(\\d[\\d,.]*\\d*)+([kKmMbBtT])");
+    private static final Pattern TEXTURE_URL_PATTERN = Pattern.compile("\"url\"\\s?:\\s?\".+/(?<textureId>\\w+)\"");
 
     private static final NavigableMap<Integer, String> suffixes = new TreeMap<>();
     static {
@@ -41,17 +47,26 @@ public class TextUtils {
         suffixes.put(1_000_000, "M");
         suffixes.put(1_000_000_000, "B");
         NUMBER_FORMAT.setMaximumFractionDigits(2);
+        NUMBER_FORMAT_NO_GROUPING.setMaximumFractionDigits(2);
+        NUMBER_FORMAT_NO_GROUPING.setGroupingUsed(false);
     }
 
     /**
-     * Formats a double number to look better with commas every 3 digits and up to two decimal places.
+     * Formats a number to look better with commas every 3 digits (if the {@code NUMBER_SEPARATORS} mod feature is enabled)
+     * and up to two decimal places.
      * For example: {@code 1,006,789.5}
      *
      * @param number Number to format
      * @return Formatted string
      */
-    public static String formatDouble(double number) {
-        return NUMBER_FORMAT.format(number);
+    public static String formatNumber(Number number) {
+        // This null check is here for TextUtilsTests
+        if (SkyblockAddons.getInstance() == null ||
+                SkyblockAddons.getInstance().getConfigValues().isEnabled(Feature.NUMBER_SEPARATORS)) {
+            return NUMBER_FORMAT.format(number);
+        } else {
+            return NUMBER_FORMAT_NO_GROUPING.format(number);
+        }
     }
 
     /**
@@ -76,14 +91,28 @@ public class TextUtils {
     /**
      * Strips icons and colors and trims spaces from a potential username
      * @param input Text to strip from
-     * @return Stripped Text
+     * @return Stripped text. If the username is not found, the input returns back.
      */
     public static String stripUsername(String input) {
-        return trimWhitespaceAndResets(stripIcons(stripColor(stripPrefix((input)))));
+        Matcher usernameMatcher = USERNAME_PATTERN.matcher(input);
+        if (usernameMatcher.matches())
+            return usernameMatcher.group("username");
+        else
+            return input;
     }
 
     public static String stripPrefix(String input) {
         return STRIP_PREFIX_PATTERN.matcher(input).replaceAll("");
+    }
+
+    /**
+     * Checks if text matches a Minecraft username
+     *
+     * @param input Text to check
+     * @return Whether this input can be Minecraft username or not
+     */
+    public static boolean isUsername(String input) {
+        return USERNAME_PATTERN.matcher(input).matches();
     }
 
     /**
@@ -92,7 +121,7 @@ public class TextUtils {
      * @return {@code true} if the input string is length 0 or only contains repeated formatting codes
      */
     public static boolean isZeroLength(String input) {
-        return input.length() == 0 || REPEATED_COLOR_PATTERN.matcher(input).matches();
+        return input.isEmpty() || REPEATED_COLOR_PATTERN.matcher(input).matches();
     }
 
 
@@ -139,7 +168,7 @@ public class TextUtils {
     /**
      * Converts all numbers with magnitudes in a given string, e.g. "10k" -> "10000" and "10M" -> "10000000." Magnitudes
      * are not case-sensitive.
-     *
+     * <p>
      * <b>Supported magnitudes:</b>
      * <p>k - thousand</p>
      * <p>m - million</p>
@@ -177,7 +206,7 @@ public class TextUtils {
                     parsedDouble *= 1_000_000_000_000L;
             }
 
-            matcher.appendReplacement(sb, NUMBER_FORMAT.format(parsedDouble));
+            matcher.appendReplacement(sb, TextUtils.formatNumber(parsedDouble));
         }
         matcher.appendTail(sb);
 
@@ -245,12 +274,12 @@ public class TextUtils {
     }
 
     /**
-     * @param textureURL The texture ID/hash that is in the texture URL (not including http://textures.minecraft.net/texture/)
+     * @param textureURL texture ID/hash that is in the texture URL (not including https://textures.minecraft.net/texture/)
      * @return A json string including the texture URL as a skin texture (used in NBT)
      */
     public static String encodeSkinTextureURL(String textureURL) {
         JsonObject skin = new JsonObject();
-        skin.addProperty("url", "http://textures.minecraft.net/texture/" + textureURL);
+        skin.addProperty("url", "https://textures.minecraft.net/texture/" + textureURL);
 
         JsonObject textures = new JsonObject();
         textures.add("SKIN", skin);
@@ -259,6 +288,35 @@ public class TextUtils {
         root.add("textures", textures);
 
         return Base64.getEncoder().encodeToString(SkyblockAddons.getGson().toJson(root).getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Decodes texture property value to string
+     * @param base64 encoded string
+     * @param justTextureUrl boolean
+     * @return if justTextureUrl true texture part else all encoded text in string format
+     */
+    public static String decodeSkinTexture(String base64, boolean justTextureUrl) {
+        if (base64 == null) return null;
+
+        String decodedString = new String(
+                Base64.getDecoder().decode(
+                        // Getting before '=' to avoid IllegalArgumentException. No padding needed
+                        base64.contains("=") ? base64.substring(0, base64.indexOf('=')) : base64
+                ),
+                StandardCharsets.UTF_8
+        );
+
+        if (justTextureUrl) {
+            Matcher matcher = TEXTURE_URL_PATTERN.matcher(decodedString);
+            if (matcher.find()) {
+                return matcher.group("textureId");
+            } else {
+                return null;
+            }
+        } else {
+            return decodedString;
+        }
     }
 
     public static String abbreviate(int number) {
@@ -288,16 +346,6 @@ public class TextUtils {
      */
     public static String trimWhitespaceAndResets(String input) {
         return TRIM_WHITESPACE_RESETS.matcher(input).replaceAll("");
-    }
-
-    /**
-     * Checks if text matches a Minecraft username
-     *
-     * @param input Text to check
-     * @return Whether this input can be Minecraft username or not
-     */
-    public static boolean isUsername(String input) {
-        return USERNAME_PATTERN.matcher(input).matches();
     }
 
     /**
@@ -338,7 +386,7 @@ public class TextUtils {
      * @return {@code null} if {@param unformattedSubstring} is not found in {@param formatted}, or the colored/styled substring.
      */
     public static String getFormattedString(String formatted, String unformattedSubstring) {
-        if (unformattedSubstring.length() == 0) {
+        if (unformattedSubstring.isEmpty()) {
             return "";
         }
         String styles = "kKlLmMnNoO";
@@ -425,7 +473,7 @@ public class TextUtils {
      * @return the relevant formatting codes in effect after {@param secondFormat}
      */
     private static String mergeFormats(String firstFormat, String secondFormat) {
-        if (secondFormat == null || secondFormat.length() == 0) {
+        if (secondFormat == null || secondFormat.isEmpty()) {
             return firstFormat;
         }
         String styles = "kKlLmMnNoO";
@@ -463,7 +511,7 @@ public class TextUtils {
 
     /**
      * Recursively searches for a chat component to transform based on a given Predicate.
-     *
+     * <p>
      * Important to note that this function will stop on the first successful transformation, unlike {@link #transformAllChatComponents(IChatComponent, Consumer)}
      * @param chatComponent root chat component
      * @param action predicate that transforms a component and reports a successful transformation
@@ -477,5 +525,27 @@ public class TextUtils {
                 return true;
         }
         return false;
+    }
+
+    public static String getBackpackIDFromLore(String lore) {
+        return stripColor(lore).replace("✦", "").trim().toUpperCase().replaceAll(" ", "_");
+    }
+
+    /**
+     * Returns pet level after string actions
+     * @param displayName Pet display name
+     * @return Integer pet level. If cannot find returns -1
+     */
+    public static int getPetLevelFromDisplayName(String displayName) {
+        int startIndex = displayName.indexOf("[Lvl ");
+        // 5 length of "[Lvl "
+        if (startIndex != -1) {
+            startIndex += 5;
+            int endIndex = displayName.indexOf("]", startIndex);
+            if (endIndex != -1) {
+                return Integer.parseInt(displayName.substring(startIndex, endIndex));
+            }
+        }
+        return -1;
     }
 }

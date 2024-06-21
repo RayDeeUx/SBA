@@ -1,6 +1,7 @@
 package codes.biscuit.skyblockaddons.utils;
 
 import codes.biscuit.skyblockaddons.SkyblockAddons;
+import codes.biscuit.skyblockaddons.asm.SkyblockAddonsASMTransformer;
 import codes.biscuit.skyblockaddons.core.Translations;
 import codes.biscuit.skyblockaddons.utils.data.DataUtils;
 import lombok.Getter;
@@ -70,8 +71,8 @@ public class DevUtils {
     private static final List<Class<? extends Entity>> DEFAULT_ENTITY_NAMES = Collections.singletonList(EntityLivingBase.class);
     private static final boolean DEFAULT_SIDEBAR_FORMATTED = false;
 
-    @Getter @Setter
-    private static boolean loggingActionBarMessages = false;
+    @Getter @Setter private static boolean loggingActionBarMessages = false;
+    @Getter @Setter private static  boolean loggingSlayerTrackerMessages = false;
     private static CopyMode copyMode = CopyMode.ENTITY;
     private static List<Class<? extends Entity>> entityNames = DEFAULT_ENTITY_NAMES;
     private static int entityCopyRadius = DEFAULT_ENTITY_COPY_RADIUS;
@@ -592,7 +593,9 @@ public class DevUtils {
         main.getPersistentValuesManager().loadValues();
         ((SimpleReloadableResourceManager) mc.getResourceManager()).reloadResourcePack(FMLClientHandler.instance().getResourcePackFor(SkyblockAddons.MOD_ID));
         try {
-            Method notifyReloadListenersMethod = SimpleReloadableResourceManager.class.getDeclaredMethod("notifyReloadListeners");
+            Method notifyReloadListenersMethod = SimpleReloadableResourceManager.class.getDeclaredMethod(
+                    SkyblockAddonsASMTransformer.isDeobfuscated() ? "notifyReloadListeners" : "func_110544_b"
+            );
             notifyReloadListenersMethod.setAccessible(true);
             notifyReloadListenersMethod.invoke(mc.getResourceManager());
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {

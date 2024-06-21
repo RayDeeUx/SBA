@@ -9,7 +9,9 @@ import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.network.NetworkPlayerInfo;
+import org.apache.logging.log4j.Logger;
 
+import java.text.ParseException;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -22,14 +24,14 @@ import java.util.stream.Collectors;
  * This class contains a set of utility methods for Skyblock Dungeons.
  */
 public class DungeonManager {
-
-    private static final Pattern PATTERN_MILESTONE = Pattern.compile("^.+?(Healer|Tank|Mage|Archer|Berserk) Milestone .+?([❶-❿]).+?§r§.(\\d+)§.§7 .+?");
-    private static final Pattern PATTERN_COLLECTED_ESSENCES = Pattern.compile("§.+?(\\d+) (Wither|Spider|Undead|Dragon|Gold|Diamond|Ice) Essence");
-    private static final Pattern PATTERN_BONUS_ESSENCE = Pattern.compile("^§.+?[^You] .+?found a .+?(Wither|Spider|Undead|Dragon|Gold|Diamond|Ice) Essence.+?");
-    private static final Pattern PATTERN_SALVAGE_ESSENCES = Pattern.compile("\\+(?<essenceNum>[0-9]+) (?<essenceType>Wither|Spider|Undead|Dragon|Gold|Diamond|Ice) Essence!");
+    private static final Logger logger = SkyblockAddons.getLogger();
+    private static final Pattern PATTERN_MILESTONE = Pattern.compile("^.+?(Healer|Tank|Mage|Archer|Berserk) Milestone .+?([❶-❿]).+?§r§.([\\d,]+)");
+    private static final Pattern PATTERN_COLLECTED_ESSENCES = Pattern.compile("§.+?(\\d+) (Wither|Spider|Undead|Dragon|Gold|Diamond|Ice|Crimson) Essence");
+    private static final Pattern PATTERN_BONUS_ESSENCE = Pattern.compile("^§.+?[^You] .+?found a .+?(Wither|Spider|Undead|Dragon|Gold|Diamond|Ice|Crimson) Essence.+?");
+    private static final Pattern PATTERN_SALVAGE_ESSENCES = Pattern.compile("\\+(?<essenceNum>[0-9]+) (?<essenceType>Wither|Spider|Undead|Dragon|Gold|Diamond|Ice|Crimson) Essence!");
     private static final Pattern PATTERN_SECRETS = Pattern.compile("§7([0-9]+)/([0-9]+) Secrets");
-    private static final Pattern PATTERN_PLAYER_LINE = Pattern.compile("^§.\\[(?<classLetter>.)] (?<name>[\\w§]+) (?:§.)*?§(?<healthColor>.)(?<health>[\\w]+)(?:§c❤)?");
-    private static final Pattern PLAYER_LIST_INFO_DEATHS_PATTERN = Pattern.compile("Deaths: \\((?<deaths>\\d+)\\)");
+    private static final Pattern PATTERN_PLAYER_LINE = Pattern.compile("§.\\[(?<classLetter>.)] (?<name>[\\w§]+) §(?<healthColor>.)(?<health>[\\d,]+|[\\w§]+)(?:[§c❤]{0,3})?");
+    private static final Pattern PLAYER_LIST_INFO_DEATHS_PATTERN = Pattern.compile("Team Deaths: (?<deaths>\\d+)");
 
     /** The last dungeon server the player played on */
     @Getter @Setter private String lastServerId;
@@ -42,7 +44,6 @@ public class DungeonManager {
 
     /**
      * Represents the number of essences from salvaged items by the player.
-     *
      * It's in a separate map to avoid conflict with the collected map.
      */
     @Getter private final Map<EssenceType, Integer> salvagedEssences = new EnumMap<>(EssenceType.class);
@@ -198,6 +199,20 @@ public class DungeonManager {
     }
 
     /**
+     * @param type Essence type
+     * @param number Total number of essences
+     */
+    public void setSalvagedEssences(EssenceType type, String number) {
+        int amount = 0;
+        try {
+            amount = TextUtils.NUMBER_FORMAT.parse(number).intValue();
+        } catch (ParseException ex) {
+            logger.error("Failed to parse " + type.getNiceName() + " essence amount: ", ex);
+        }
+        salvagedEssences.put(type, amount);
+    }
+
+    /**
      * This method parses dungeon player stats displayed on the scoreboard sidebar and stores them as {@code DungeonPlayer}
      * objects. It first determines if the given line represents a dungeon player's stats. If so, it then parses all the
      * stats from the line. Finally, it creates a new {@code DungeonPlayer} object containing the parsed stats or updates
@@ -207,7 +222,7 @@ public class DungeonManager {
     public void updateDungeonPlayer(String scoreboardLine) {
         Matcher matcher = PATTERN_PLAYER_LINE.matcher(scoreboardLine);
 
-        if (matcher.matches()) {
+        if (matcher.find()) {
             String name = TextUtils.stripColor(matcher.group("name"));
 
             // This is inconsistent, don't add the player themselves...
@@ -217,13 +232,18 @@ public class DungeonManager {
 
             DungeonClass dungeonClass = DungeonClass.fromFirstLetter(matcher.group("classLetter").charAt(0));
             ColorCode healthColor = ColorCode.getByChar(matcher.group("healthColor").charAt(0));
-            String healthText = matcher.group("health");
+            String healthText = TextUtils.stripColor(matcher.group("health"));
             int health;
 
             if (healthText.equals("DEAD")) {
                 health = 0;
             } else {
-                health = Integer.parseInt(healthText);
+                try {
+                    health = TextUtils.NUMBER_FORMAT.parse(healthText).intValue();
+                } catch (ParseException ex) {
+                    logger.error("Failed to parse player "+ name + " health: " + healthText, ex);
+                    return;
+                }
             }
 
             for (DungeonPlayer player: teammates.values()) {

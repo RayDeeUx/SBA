@@ -98,19 +98,19 @@ public class ContainerPreviewManager {
 
             // Parse out a list of items in the container
             List<ItemStack> items = null;
-            String compressedDataTag = containerData.getCompressedDataTag();
-            List<String> itemStackDataTags = containerData.getItemStackDataTags();
+            String compressedDataTag = containerData.getCompressedItemStacksTag();
+            List<String> dataTags = containerData.getItemStackDataTags();
 
             if (compressedDataTag != null) {
                 if (extraAttributes.hasKey(compressedDataTag, Constants.NBT.TAG_BYTE_ARRAY)) {
                     byte[] bytes = extraAttributes.getByteArray(compressedDataTag);
                     items = decompressItems(bytes);
                 }
-            } else if (itemStackDataTags != null) {
+            } else if (dataTags != null) {
                 items = new ArrayList<>(containerSize);
-                Iterator<String> itemStackDataTagsIterator = itemStackDataTags.iterator();
-                for (int itemNumber = 0; itemNumber < containerSize && itemStackDataTagsIterator.hasNext(); itemNumber++) {
-                    String key = itemStackDataTagsIterator.next();
+                Iterator<String> dataTagsIterator = dataTags.iterator();
+                for (int itemNumber = 0; itemNumber < containerSize && dataTagsIterator.hasNext(); itemNumber++) {
+                    String key = dataTagsIterator.next();
                     if (!extraAttributes.hasKey(key)) {
                         continue;
                     }
@@ -357,7 +357,7 @@ public class ContainerPreviewManager {
         // Get the container color
         BackpackColor color = ItemUtils.getBackpackColor(stack);
         // Relying on item lore here. Once hypixel settles on a standard for backpacks, we should figure out a better way
-        String skyblockID = TextUtils.stripColor(ItemUtils.getItemLore(stack).get(0)).toUpperCase().replaceAll(" ", "_").trim();
+        String skyblockID = TextUtils.getBackpackIDFromLore(ItemUtils.getItemLore(stack).get(0));
         ContainerData containerData = ItemUtils.getContainerData(skyblockID);
         int rows = 6, cols = 9;
         if (containerData != null) {
@@ -392,7 +392,7 @@ public class ContainerPreviewManager {
      * Called when a key is typed in a {@link GuiContainer}. Used to control backpack preview freezing.
      *
      * @param keyCode the key code of the key that was typed
-     * @see codes.biscuit.skyblockaddons.asm.hooks.GuiContainerHook#keyTyped(int) ;
+     * @see codes.biscuit.skyblockaddons.mixins.hooks.GuiContainerHook#keyTyped(int) ;
      */
     public static void onContainerKeyTyped(int keyCode) {
         SkyblockAddons main = SkyblockAddons.getInstance();

@@ -148,7 +148,7 @@ public class SettingsGui extends GuiScreen {
                         numSettings++;
                     }
                 }
-                numSettings += 0.4;
+                numSettings += 0.4f;
             }
             if (settings.contains(EnumUtils.FeatureSetting.DISCORD_RP_DETAILS)) {
                 if (main.getConfigValues().getDiscordDetails() == DiscordStatus.CUSTOM) numSettings++;
@@ -158,7 +158,7 @@ public class SettingsGui extends GuiScreen {
                         numSettings++;
                     }
                 }
-                numSettings += 0.4;
+                numSettings += 0.4f;
             }
             int height = (int) (getRowHeightSetting(numSettings) - 50);
             int y = (int) getRowHeight(1);
@@ -178,7 +178,7 @@ public class SettingsGui extends GuiScreen {
     protected void actionPerformed(GuiButton abstractButton) {
         if (abstractButton instanceof ButtonLanguage) {
             Language language = ((ButtonLanguage) abstractButton).getLanguage();
-            DataUtils.loadLocalizedStrings(language, false);
+            DataUtils.loadLocalizedStrings(language, true);
             main.setKeyBindingDescriptions();
             returnToGui();
         } else if (abstractButton instanceof ButtonSwitchTab) {
@@ -217,8 +217,8 @@ public class SettingsGui extends GuiScreen {
             closingGui = true;
             Minecraft.getMinecraft().displayGuiScreen(new SettingsGui(feature, page, lastPage, lastTab, settings));
             closingGui = false;
-        } else if (feature == Feature.POWER_ORB_STATUS_DISPLAY && abstractButton instanceof ButtonSolid) {
-            main.getConfigValues().setPowerOrbDisplayStyle(main.getConfigValues().getPowerOrbDisplayStyle().getNextType());
+        } else if (feature == Feature.DEPLOYABLE_STATUS_DISPLAY && abstractButton instanceof ButtonSolid) {
+            main.getConfigValues().setDeployableDisplayStyle(main.getConfigValues().getDeployableDisplayStyle().getNextType());
             closingGui = true;
             Minecraft.getMinecraft().displayGuiScreen(new SettingsGui(feature, page, lastPage, lastTab, settings));
             closingGui = false;
@@ -234,6 +234,11 @@ public class SettingsGui extends GuiScreen {
                     mc.displayGuiScreen(new SettingsGui(feature, --page, lastPage, lastTab, settings));
                 }
             }
+        } else if (feature == Feature.PET_DISPLAY) {
+            main.getConfigValues().setPetItemStyle(main.getConfigValues().getPetItemStyle().getNextType());
+            closingGui = true;
+            Minecraft.getMinecraft().displayGuiScreen(new SettingsGui(feature, page, lastPage, lastTab, settings));
+            closingGui = false;
         }
     }
 
@@ -266,7 +271,7 @@ public class SettingsGui extends GuiScreen {
         int x = halfWidth - (boxWidth / 2);
         double y = getRowHeightSetting(row);
         if (setting == EnumUtils.FeatureSetting.COLOR) {
-            buttonList.add(new ButtonOpenColorMenu(x, y, 100, 20, Translations.getMessage("settings.changeColor"), main, feature));
+            buttonList.add(new ButtonOpenColorMenu(x, y, 100, 20, Translations.getMessage("settings.changeColor"), feature));
         } else if (setting == EnumUtils.FeatureSetting.GUI_SCALE) {
             try {
                 buttonList.add(new ButtonGuiScale(x, y, 100, 20, main, feature));
@@ -302,7 +307,7 @@ public class SettingsGui extends GuiScreen {
             if (feature == Feature.DARK_AUCTION_TIMER) {
                 settingFeature = Feature.SHOW_DARK_AUCTION_TIMER_IN_OTHER_GAMES;
             } else if  (feature == Feature.FARM_EVENT_TIMER) {
-                    settingFeature = Feature.SHOW_FARM_EVENT_TIMER_IN_OTHER_GAMES;
+                settingFeature = Feature.SHOW_FARM_EVENT_TIMER_IN_OTHER_GAMES;
             } else if (feature == Feature.DROP_CONFIRMATION) {
                 settingFeature = Feature.DOUBLE_DROP_IN_OTHER_GAMES;
             } else if (feature == Feature.OUTBID_ALERT_SOUND) {
@@ -313,19 +318,30 @@ public class SettingsGui extends GuiScreen {
         } else if (setting == EnumUtils.FeatureSetting.BACKPACK_STYLE) {
             boxWidth = 140;
             x = halfWidth - (boxWidth / 2);
-            buttonList.add(new ButtonSolid(x, y, 140, 20, Translations.getMessage("settings.backpackStyle"), main, feature));
+            buttonList.add(new ButtonTextNew(halfWidth, (int) y - 10, Translations.getMessage("settings.backpackStyle"), true, 0xFFFFFFFF));
+            buttonList.add(new ButtonSolid(x, y, 140, 20, "%style%", main, feature));
         } else if (setting == EnumUtils.FeatureSetting.ENABLE_MESSAGE_WHEN_ACTION_PREVENTED) {
             boxWidth = 31;
             x = halfWidth - (boxWidth / 2);
 
             Feature settingFeature = null;
 
-
-            buttonList.add(new ButtonToggleTitle(x, y, Translations.getMessage("settings.enableMessageWhenActionPrevented"), main, settingFeature));
-        } else if (setting == EnumUtils.FeatureSetting.POWER_ORB_DISPLAY_STYLE) {
+            buttonList.add(new ButtonToggleTitle(x, y, setting.getMessage(), main, settingFeature));
+        } else if (setting == EnumUtils.FeatureSetting.DEPLOYABLE_DISPLAY_STYLE) {
             boxWidth = 140;
             x = halfWidth - (boxWidth / 2);
-            buttonList.add(new ButtonSolid(x, y, 140, 20, Translations.getMessage("settings.powerOrbDisplayStyle"), main, feature));
+            buttonList.add(new ButtonTextNew(halfWidth, (int) y - 10, setting.getMessage(), true, 0xFFFFFFFF));
+            buttonList.add(new ButtonSolid(x, y, 140, 20, "%style%", main, feature));
+        } else if (setting == EnumUtils.FeatureSetting.EXPAND_DEPLOYABLE_STATUS) {
+            boxWidth = 31;
+            x = halfWidth - (boxWidth / 2);
+            y = getRowHeightSetting(row);
+
+            Feature settingFeature;
+            if (main.getConfigValues().getDeployableDisplayStyle().equals(EnumUtils.DeployableDisplayStyle.DETAILED)) {
+                settingFeature = Feature.EXPAND_DEPLOYABLE_STATUS;
+                buttonList.add(new ButtonToggleTitle(x, y, Translations.getMessage("settings.expandDeployableStatus"), main, settingFeature));
+            }
         } else if (setting == EnumUtils.FeatureSetting.DISCORD_RP_DETAILS || setting == EnumUtils.FeatureSetting.DISCORD_RP_STATE) {
             boxWidth = 140;
             x = halfWidth - (boxWidth / 2);
@@ -352,7 +368,7 @@ public class SettingsGui extends GuiScreen {
 
             if (currentStatus == DiscordStatus.AUTO_STATUS) {
                 row++;
-                row += 0.4;
+                row += 0.4F;
                 x = halfWidth - (boxWidth / 2);
                 y = getRowHeightSetting(row);
 
@@ -382,7 +398,7 @@ public class SettingsGui extends GuiScreen {
                 buttonList.add(inputField);
             }
 
-            row += 0.4;
+            row += 0.4F;
         } else if (setting == EnumUtils.FeatureSetting.MAP_ZOOM) {
             // For clarity
             //noinspection ConstantConditions
@@ -416,6 +432,12 @@ public class SettingsGui extends GuiScreen {
             } else if (feature == Feature.VOIDGLOOM_SLAYER_TRACKER) {
                 settingFeature = Feature.ENDERMAN_COLOR_BY_RARITY;
 
+            } else if (feature == Feature.INFERNO_SLAYER_TRACKER) {
+                settingFeature = Feature.INFERNO_COLOR_BY_RARITY;
+
+            } else if (feature == Feature.RIFTSTALKER_SLAYER_TRACKER) {
+                settingFeature = Feature.RIFTSTALKER_COLOR_BY_RARITY;
+
             } else if (feature == Feature.DRAGON_STATS_TRACKER) {
                 settingFeature = Feature.DRAGON_STATS_TRACKER_COLOR_BY_RARITY;
             }
@@ -439,6 +461,12 @@ public class SettingsGui extends GuiScreen {
 
             } else if (feature == Feature.VOIDGLOOM_SLAYER_TRACKER) {
                 settingFeature = Feature.ENDERMAN_TEXT_MODE;
+
+            } else if (feature == Feature.INFERNO_SLAYER_TRACKER) {
+                settingFeature = Feature.INFERNO_TEXT_MODE;
+
+            } else if (feature == Feature.RIFTSTALKER_SLAYER_TRACKER) {
+                settingFeature = Feature.RIFTSTALKER_TEXT_MODE;
 
             } else if (feature == Feature.DRAGON_STATS_TRACKER_TEXT_MODE) {
                 settingFeature = Feature.DRAGON_STATS_TRACKER_TEXT_MODE;
@@ -482,19 +510,24 @@ public class SettingsGui extends GuiScreen {
             x = halfWidth - (boxWidth / 2);
             y = getRowHeightSetting(row);
             buttonList.add(new ButtonToggleTitle(x, y, setting.getMessage(), main, setting.getFeatureEquivalent()));
-            row += .1;
+            row += .1F;
             y = getRowHeightSetting(row);
             buttonList.add(new ButtonTextNew(halfWidth, (int) y + 15, Translations.getMessage("settings.trevorTheTrapper.showQuestCooldownDescription"), true, ColorCode.GRAY.getColor()));
-            row += 0.4;
+            row += .4F;
         } else if (setting == EnumUtils.FeatureSetting.TREVOR_HIGHLIGHT_TRACKED_ENTITY && feature == Feature.ENTITY_OUTLINES) {
             boxWidth = 31; // Default size and stuff.
             x = halfWidth - (boxWidth / 2);
             y = getRowHeightSetting(row);
             buttonList.add(new ButtonToggleTitle(x, y, setting.getMessage(), main, setting.getFeatureEquivalent()));
-            row += .4;
+            row += .4F;
             y = getRowHeightSetting(row);
             buttonList.add(new ButtonTextNew(halfWidth, (int) y + 15, Translations.getMessage("messages.entityOutlinesRequirement"), true, ColorCode.GRAY.getColor()));
-            row += .4;
+            row += .4F;
+        } else if (setting == EnumUtils.FeatureSetting.PET_ITEM_STYLE) {
+            boxWidth = 140;
+            x = halfWidth - (boxWidth / 2);
+            buttonList.add(new ButtonTextNew(halfWidth, (int) y - 10, setting.getMessage(), true, 0xFFFFFFFF));
+            buttonList.add(new ButtonSolid(x, y, 140, 20, "%style%", main, feature));
         } else {
             boxWidth = 31; // Default size and stuff.
             x = halfWidth - (boxWidth / 2);

@@ -5,7 +5,7 @@
     "settings": "Settings",
     "magmaBossWarning": "Magma Boss Warning",
     "balBossWarning": "Bal Boss Warning",
-    "broodMotherWarning": "Brood Mother Warning",
+    "broodMotherWarning": "Broodmother Warning",
     "itemDropConfirmation": "Item Drop Confirmation",
     "hideSkeletonHatBones": "Hide Skeleton's Helmet Bones",
     "skeletonHatBonesBar": "Skeleton's Helmet Bones Bar",
@@ -18,7 +18,7 @@
     "resetLocations": "Reset Locations",
     "minionStopWarning": "\"Minion Cannot Reach\" Warning",
     "hidePlayersNearNPCs": "Hide Players Near Important NPCs",
-    "backpackStyle": "Backpack Style: %style%",
+    "backpackStyle": "Backpack Style",
     "backpackStyles": {
       "regular": "Regular",
       "compact": "Compact"
@@ -73,9 +73,9 @@
     "specialZealotAlert": "Special Zealot Alert",
     "enableMessageWhenActionPrevented": "Show a Message When an Action is Prevented",
     "hidePetHealthBar": "Hide Pet Health Bar",
-    "powerOrbDisplay": "Power Orb Display",
-    "powerOrbDisplayStyle": "Power Orb Style: %style%",
-    "powerOrbStyle": {
+    "deployableDisplay": "Deployable Display",
+    "deployableDisplayStyle": "Deployable Style",
+    "deployableStyle": {
       "detailed": "Detailed",
       "compact": "Compact"
     },
@@ -102,7 +102,7 @@
     "showTotalZealotCount": "Zealot Counter - Total Zealot Count",
     "showSummoningEyeCount": "Zealot Counter - Total Eye Count",
     "showZealotsPerEye": "Zealot Counter - Show Zealots Per Eye",
-    "turnBowGreenWhenUsingToxicArrowPoison": "Color Bow Green When Using Toxic Arrow Poison",
+    "turnBowGreenWhenUsingToxicArrowPoison": "Turn Bow Color When Using Arrow Poison",
     "birchParkRainmakerTimer": "Birch Park Rainmaker Timer",
     "combatTimerDisplay": "Combat Timer Display",
     "discordRP": "Discord Rich Presence",
@@ -123,6 +123,7 @@
     "changeZealotColor": "Change Zealot Color",
     "hideSvenPupNametags": "Hide Sven Pup Nametags",
     "turnAllFeaturesChroma": "Turn All Features Chroma",
+    "turnAllTextsChroma": "Turn All Texts Chroma",
     "dungeonMapDisplay": "Dungeon Map Display",
     "rotateMap": "Rotate The Map With Your Player's Rotation",
     "centerRotationOnYourPlayer": "Rotate Around Your Player's Marker",
@@ -133,6 +134,7 @@
     "mapZoom": "Map Zoom",
     "glowingDroppedItems": "Glowing Dropped Items",
     "outlineDungeonTeammates": "Outline Dungeon Teammates",
+    "outlineShowcaseItems": "Outline Showcase Items",
     "baseStatBoostPercentage": "Show Base Stat Boost for Dungeon Items",
     "colorByRarity": "Color By Rarity",
     "showPlayerHeadsOnMap": "Show Player Heads on Dungeon Map",
@@ -169,7 +171,7 @@
     "compactTabList": "Compact Tab List",
     "highlightSpecialEnchantments": "Highlight Special Enchantments",
     "disableDamageChatMessages": "Disable Damage Chat Messages",
-    "showSpiritSceptreDisplay": "Spirit Sceptre/Wither Blade Damage Display",
+    "showSpiritSceptreDisplay": "Spirit Sceptre/Wither Blade/Midas Staff Damage Display",
     "outbidAlertSound": "Outbid Alert Sound",
     "hideMenuGlassPanes": "Hide Menu Glass Pane Tooltips",
     "candyPointsCounter": "Spooky Event Candy/Points Counter",
@@ -177,7 +179,6 @@
     "chromaSize": "Chroma Size",
     "chromaSaturation": "Chroma Saturation",
     "chromaBrightness": "Chroma Brightness",
-    "useNewChromaEffect": "Use New Chroma Effect",
     "showExperimentationTableTooltips": "Show Experimentation Table Tooltips",
     "drillFuelBar": "Drill Fuel Bar",
     "drillFuelNumber": "Drill Fuel Number",
@@ -196,7 +197,8 @@
       "trackedEntityProximityIndicator": "Show Tracked Entity Proximity Indicator",
       "highlightTrackedEntity": "Highlight Tracked Entity",
       "showQuestCooldown": "Show Trevor's Quest Cooldown",
-      "showQuestCooldownDescription": "This will be displayed above Trevor's head"
+      "showQuestCooldownDescription": "This will be displayed above Trevor's head",
+      "betterNametag": "Better Name Tag visibility for Animal"
     },
     "showEnderChestPreview": "Show Ender Chest Preview",
     "hideWhenNotDoingQuest": "Hide When Not Doing Quest",
@@ -208,6 +210,7 @@
     "guiScaleX": "GUI X Scale: %scale%",
     "guiScaleY": "GUI Y Scale: %scale%",
     "abbreviateSkillXpDenominator": "Abbreviate Skill XP Denominator",
+    "abbreviateDrillFuelDenominator": "Abbreviate Drill Fuel Denominator",
     "otherDefenseStats": "Other Defense Stats (Soul Tether/Cell Alignment)",
     "hideSpawnPointPlayers": "Hide Players at Hub Spawn Point",
     "jacobsContestTimer": "Jacob's Contest Timer",
@@ -223,7 +226,30 @@
     "hideTrueDefense": "Hide True Defense",
     "showProfileType": "Show Profile Type",
     "showNetherFaction": "Show Nether Faction",
-    "zealotSpawnAreasOnly": "Show Only in Zealot Spawn Areas"
+    "numberSeparators": "Number Separators",
+    "showProfileTypeInChat": "Show Profile Type In Chat",
+    "zealotSpawnAreasOnly": "Show Only in Zealot Spawn Areas",
+    "infernoSlayerTracker": "Slayer Tracker - Inferno/Blaze",
+    "riftstalkerSlayerTracker": "Slayer Tracker - Riftstalker/Vampire",
+    "expandDeployableStatus": "Show stats in 2 columns on detailed status",
+    "showOnlyHoldingFishingRod": "Show only when holding a fishing rod",
+    "hideHealthThingsOnRift": "Don't show while in Rift Dimension",
+    "hideOnlyOutsideRift": "Hide only outside Rift Dimension",
+    "fireFreezeTimer": "Fire Freeze Timer F3/M3",
+    "fireFreezeSound": "When countdown hit 0 play sound",
+    "fireFreezeWhenHolding": "Only show while holding Fire Freeze",
+    "hideHauntedSkulls": "Hide Haunted Skulls from Soulweaver Gloves",
+    "thunderBottleDisplay": "Thunder Bottle Display",
+    "heartInsteadHealthOnRift": "Heart value instead of health value on Rift Dimension",
+    "editLocationFromOutsideWarning": "\"Edit GUI Locations\" not supported from outside! Please open this menu in-game!",
+    "petDisplay": "Pet Display",
+    "petItemStyle": "Pet Item Style",
+    "petItemStyles": {
+      "none": "None",
+      "displayName": "Display Name",
+      "showItem": "Show Item"
+    },
+    "stopNameOverlayWhenClose": "Stop rendering when vanilla name tag good enough to see"
   },
   "messages": {
     "enchants": "Enchants",
@@ -231,7 +257,7 @@
     "dropConfirmation": "Drop this item again to confirm!",
     "magmaBossWarning": "Magma Cube Boss!",
     "balBossWarning": "Bal Boss!",
-    "broodMotherWarning": "Brood Mother!",
+    "broodMotherWarning": "Broodmother!",
     "fullInventory": "Full Inventory!",
     "labymod": "Labymod Users: Hide Food, Armor, and Health Bar, is incompatible.",
     "minionCannotReach": "A %type% minion cannot reach and has stopped spawning!",
@@ -245,6 +271,7 @@
       "joinDiscord": "Join our Discord server!",
       "watchShowcase": "Watch Video",
       "downloadButton": "Download",
+      "changelogButton": "Changelog",
       "openModFolderButton": "Open Mods Folder",
       "joinDiscordButton": "Join Discord",
       "newUpdateAvailable": "A new update (%version%) is available!",
@@ -315,6 +342,8 @@
     "descriptionPurse": "Shows the amount of coins in your purse",
     "titleBits": "Bits",
     "descriptionBits": "Shows the amount of bits you have",
+    "titleMotes": "Motes",
+    "descriptionMotes": "Shows the amount of motes you have",
     "titleStats": "Stats",
     "descriptionStats": "Shows your HP, Defense and Mana stats",
     "titleZealots": "Zealots",
@@ -338,7 +367,9 @@
     "titleVoidgloom": "Voidgloom Quest",
     "descriptionVoidgloom": "Shows that you are doing a Voidgloom quest.",
     "titleInferno": "Inferno Quest",
-    "descriptionInferno": "Shows that you are doing an Inferno quest."
+    "descriptionInferno": "Shows that you are doing an Inferno quest.",
+    "titleRiftstalker": "Riftstalker Quest",
+    "descriptionRiftstalker": "Shows that you are doing a Riftstalker quest."
   },
   "enchantLayout": {
     "title": "Control how enchants are displayed on item tooltips",
@@ -449,6 +480,9 @@
         "toggleActionBarLogging": {
           "help": "Toggles logging action bar messages"
         },
+        "toggleSlayerTrackerLogging": {
+          "help": "Toggles showing counted slayer tracker drops"
+        },
         "toggleMagmaTimerLogging": {
           "help": "Toggles logging magma boss timer debug messages"
         },
@@ -488,11 +522,16 @@
           "killsSet": "Kills for slayer %boss% was set to %number%.",
           "statSet": "Statistic %stat% for slayer %boss% was set to %number%.",
           "invalidBoss": "\"%input%\" is not a valid statistic!",
-          "invalidStat": "\"%input%\" is not a valid boss!"
+          "invalidStat": "\"%input%\" is not a valid boss!",
+          "resetBossStats": "All stats of %boss% slayer have been reset"
         },
         "toggleActionBarLogging": {
           "disabled": "Action bar messages will no longer be logged.",
           "enabled": "Action bar messages will now be logged."
+        },
+        "toggleSlayerTrackerLogging": {
+          "disabled": "Slayer tracker drops will no longer be shown.",
+          "enabled": "Slayer tracker drops will now be shown."
         },
         "toggleMagmaTimerLogging": {
           "disabled": "Magma boss timer messages will no longer be logged.",
@@ -670,6 +709,8 @@
     "tarantula": "Tarantula Broodfather:",
     "sven": "Sven Packmaster:",
     "voidgloom": "Voidgloom Seraph:",
+	"inferno": "Inferno Demonlord:",
+    "riftstalker": "Riftstalker Bloodfiend:",
     "bossesKilled": "Bosses Killed"
   },
   "warpMenu": {
@@ -693,6 +734,7 @@
     "cultivatedCrops": "Cultivated Crops",
     "hecatombsSRuns": "Hecatombs S Runs",
     "championCombatXp": "Champion Combat XP",
+    "toxophiliteCombatXp": "Toxophilite Combat XP",
     "maxed": "Maxed"
   }
 }

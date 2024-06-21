@@ -5,6 +5,7 @@ import lombok.Getter;
 import java.util.HashMap;
 
 @Getter
+@Deprecated
 public class ProfileMembers {
 
     private HashMap<String, MemberData> members;
@@ -23,6 +24,8 @@ public class ProfileMembers {
         private SlayerData spider;
         private SlayerData wolf;
         private SlayerData enderman;
+        private SlayerData blaze;
+        private SlayerData vampire;
     }
 
     @Getter

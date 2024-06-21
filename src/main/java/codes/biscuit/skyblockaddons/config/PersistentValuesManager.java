@@ -2,13 +2,14 @@ package codes.biscuit.skyblockaddons.config;
 
 import codes.biscuit.hypixellocalizationlib.HypixelLanguage;
 import codes.biscuit.skyblockaddons.SkyblockAddons;
+import codes.biscuit.skyblockaddons.core.Feature;
 import codes.biscuit.skyblockaddons.features.FetchurManager;
 import codes.biscuit.skyblockaddons.features.backpacks.CompressedStorage;
-import codes.biscuit.skyblockaddons.features.craftingpatterns.CraftingPattern;
 import codes.biscuit.skyblockaddons.features.dragontracker.DragonTrackerData;
 import codes.biscuit.skyblockaddons.features.slayertracker.SlayerTrackerData;
 import lombok.Getter;
 import lombok.Setter;
+import net.minecraft.client.Minecraft;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
@@ -41,7 +42,6 @@ public class PersistentValuesManager {
         private Map<String, CompressedStorage> storageCache = new HashMap<>();
 
         private boolean blockCraftingIncompletePatterns = true; // unused after crafting pattern removal
-        private CraftingPattern selectedCraftingPattern = CraftingPattern.FREE; // unused after crafting pattern removal
 
         private int oresMined = 0;
         private int seaCreaturesKilled = 0;
@@ -65,7 +65,7 @@ public class PersistentValuesManager {
                 persistentValues = SkyblockAddons.getGson().fromJson(reader, PersistentValues.class);
 
             } catch (Exception ex) {
-                logger.error("Error loading persistent values.", ex);
+                logger.error("Error loading persistent values!", ex);
             }
 
         } else {
@@ -84,7 +84,8 @@ public class PersistentValuesManager {
                 return;
             }
 
-            logger.info("Saving persistent values");
+            boolean isDevMode = Feature.DEVELOPER_MODE.isEnabled();
+            if (isDevMode) logger.info("Saving persistent values...");
 
             try {
                 //noinspection ResultOfMethodCallIgnored
@@ -94,10 +95,15 @@ public class PersistentValuesManager {
                     SkyblockAddons.getGson().toJson(persistentValues, writer);
                 }
             } catch (Exception ex) {
-                logger.error("Error saving persistent values.", ex);
+                logger.error("Error saving persistent values!", ex);
+                if (Minecraft.getMinecraft().thePlayer != null) {
+                    SkyblockAddons.getInstance().getUtils().sendErrorMessage(
+                            "Error saving persistent values! Check log for more detail."
+                    );
+                }
             }
 
-            logger.info("Persistent Values Saved");
+            if (isDevMode) logger.info("Persistent values saved!");
 
             SAVE_LOCK.unlock();
         });
@@ -122,4 +128,25 @@ public class PersistentValuesManager {
         persistentValues.kills = 0;
         saveValues();
     }
+
+    public void addOresMined() {
+        persistentValues.oresMined++;
+        saveValues();
+    }
+
+    public void addKills() {
+        persistentValues.kills++;
+        saveValues();
+    }
+
+    public void addSeaCreaturesKilled(int spawned) {
+        persistentValues.seaCreaturesKilled += spawned;
+        saveValues();
+    }
+
+    public void setLastTimeFetchur(long lastTimeFetchur) {
+        persistentValues.lastTimeFetchur = lastTimeFetchur;
+        saveValues();
+    }
+
 }

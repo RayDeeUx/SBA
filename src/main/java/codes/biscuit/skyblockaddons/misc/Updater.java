@@ -1,9 +1,8 @@
 package codes.biscuit.skyblockaddons.misc;
 
 import codes.biscuit.skyblockaddons.SkyblockAddons;
-import codes.biscuit.skyblockaddons.core.Translations;
-import codes.biscuit.skyblockaddons.core.UpdateInfo;
-import codes.biscuit.skyblockaddons.tweaker.SkyblockAddonsTransformer;
+import codes.biscuit.skyblockaddons.asm.SkyblockAddonsASMTransformer;
+import codes.biscuit.skyblockaddons.utils.pojo.OnlineData;
 import lombok.Getter;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -15,10 +14,11 @@ import org.apache.logging.log4j.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static codes.biscuit.skyblockaddons.core.Translations.getMessage;
 import static net.minecraftforge.common.ForgeVersion.Status.*;
 
 /**
- * This class is the SkyblockAddons updater. It checks for updates by reading version information from {@link UpdateInfo}.
+ * This class is the SkyblockAddons updater. It checks for updates by reading version information from {@link OnlineData.UpdateInfo}.
  */
 public class Updater {
 
@@ -62,7 +62,7 @@ public class Updater {
      */
     public void checkForUpdate() {
         logger.info("Checking to see if an update is available...");
-        UpdateInfo updateInfo = main.getOnlineData().getUpdateInfo();
+        OnlineData.UpdateInfo updateInfo = main.getOnlineData().getUpdateInfo();
 
         // Variables reset for testing update checker notifications
         sentUpdateMessage = false;
@@ -77,8 +77,8 @@ public class Updater {
         ComparableVersion latestBeta = null;
         ComparableVersion current = new ComparableVersion(SkyblockAddons.VERSION);
         boolean isCurrentBeta = isBetaVersion(current);
-        boolean latestReleaseExists = updateInfo.getLatestRelease() != null && !updateInfo.getLatestRelease().equals("");
-        boolean latestBetaExists = updateInfo.getLatestBeta() != null && !updateInfo.getLatestBeta().equals("");
+        boolean latestReleaseExists = updateInfo.getLatestRelease() != null && !updateInfo.getLatestRelease().isEmpty();
+        boolean latestBetaExists = updateInfo.getLatestBeta() != null && !updateInfo.getLatestBeta().isEmpty();
         int releaseDiff = 0;
         int betaDiff = 0;
 
@@ -133,8 +133,8 @@ public class Updater {
                 } else if (!latestBetaExists && releaseDiff < 0) {
                     status = AHEAD;
                 } else if (releaseDiff == 0) {
-                    logger.warn("The current beta version (" + currentVersionString + ") matches the latest release " +
-                            "version. There is probably something wrong with the online data.");
+                    logger.warn("The current beta version ({}) matches the latest release version. " +
+                            "There is probably something wrong with the online data.", currentVersionString);
                     status = UP_TO_DATE;
                 }
             }
@@ -157,7 +157,7 @@ public class Updater {
             String currentVersion = current.toString();
             String targetVersion = target.toString();
 
-            logger.info("Found an update: " + targetVersion);
+            logger.info("Found an update: {}", targetVersion);
 
             if (status == OUTDATED) {
                 targetVersion = updateInfo.getLatestRelease();
@@ -185,23 +185,23 @@ public class Updater {
             }
 
             if (isPatch) {
-                messageToRender = Translations.getMessage("messages.updateChecker.notificationBox.patchAvailable", targetVersion);
+                messageToRender = getMessage("messages.updateChecker.notificationBox.patchAvailable", targetVersion);
             } else if(status == BETA_OUTDATED) {
-                messageToRender = Translations.getMessage("messages.updateChecker.notificationBox.betaAvailable", targetVersion);
+                messageToRender = getMessage("messages.updateChecker.notificationBox.betaAvailable", targetVersion);
             } else {
-                messageToRender = Translations.getMessage("messages.updateChecker.notificationBox.majorAvailable", targetVersion);
+                messageToRender = getMessage("messages.updateChecker.notificationBox.majorAvailable", targetVersion);
             }
         } else if (status == AHEAD) {
-            if (!SkyblockAddonsTransformer.isDeobfuscated()) {
+            if (!SkyblockAddonsASMTransformer.isDeobfuscated()) {
                 logger.warn("The current version is newer than the latest version. Please tell an SBA developer to update" +
                         " the online data.");
             } else {
                 logger.error("The current version is newer than the latest version. You're doing something wrong.");
-                logger.error("Current: "  + current);
-                logger.error("Latest: " + latestRelease);
-                logger.error("Latest Beta: " + latestBeta);
-                logger.error("Release Diff: " + releaseDiff);
-                logger.error("Beta Diff: " + betaDiff);
+                logger.error("Current: {}", current);
+                logger.error("Latest: {}", latestRelease);
+                logger.error("Latest Beta: {}", latestBeta);
+                logger.error("Release Diff: {}", releaseDiff);
+                logger.error("Beta Diff: {}", betaDiff);
             }
         } else {
             logger.info("Up to date!");
@@ -217,13 +217,17 @@ public class Updater {
 
         main.getUtils().sendMessage("§7§m----------------§7[ §b§lSkyblockAddons §7]§7§m----------------", false);
 
-        ChatComponentText newUpdate = new ChatComponentText("§b" + Translations.getMessage(
-                "messages.updateChecker.newUpdateAvailable", targetVersion) + "\n");
-        ChatComponentText viewChangelog = new ChatComponentText("§b" + Translations.getMessage(
-                "messages.updateChecker.wantToViewPatchNotes") + "\n");
-        ChatComponentText joinDiscord = new ChatComponentText("§b" + Translations.getMessage(
-                "messages.updateChecker.joinDiscord") + "\n");
+        ChatComponentText newUpdate = new ChatComponentText(
+                String.format("§b%s\n", getMessage("messages.updateChecker.newUpdateAvailable", targetVersion))
+        );
+        /*
+        ChatComponentText viewChangelog = new ChatComponentText(
+                String.format("§b%s\n", getMessage("messages.updateChecker.wantToViewPatchNotes", targetVersion)));
+        ChatComponentText joinDiscord = new ChatComponentText(
+                String.format("§b%s\n", getMessage("messages.updateChecker.joinDiscord", targetVersion))
+        );
         newUpdate.appendSibling(viewChangelog).appendSibling(joinDiscord);
+        */
         main.getUtils().sendMessage(newUpdate, false);
 
         ChatComponentText showcaseButton = null;
@@ -231,50 +235,83 @@ public class Updater {
         ChatComponentText openModsFolderButton;
         ChatComponentText changelogButton;
 
-        if (showcaseLink != null && !showcaseLink.equals("")) {
-            showcaseButton = new ChatComponentText("§b§l[" + Translations.getMessage("messages.updateChecker.watchShowcase", targetVersion) + "]");
-            showcaseButton.setChatStyle(showcaseButton.getChatStyle().setChatClickEvent(
-                    new ClickEvent(ClickEvent.Action.OPEN_URL, showcaseLink)).setChatHoverEvent(
-                            new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§7" +
-                                    Translations.getMessage("messages.clickToOpenLink")))));
+        if (showcaseLink != null && !showcaseLink.isEmpty()) {
+            showcaseButton = new ChatComponentText(
+                    String.format("§b§l[%s]", getMessage("messages.updateChecker.watchShowcase", targetVersion))
+            );
+            showcaseButton.setChatStyle(
+                    showcaseButton.getChatStyle().setChatClickEvent(
+                            new ClickEvent(ClickEvent.Action.OPEN_URL, showcaseLink)
+                    ).setChatHoverEvent(
+                            new HoverEvent(
+                                    HoverEvent.Action.SHOW_TEXT,
+                                    new ChatComponentText("§7" + getMessage("messages.clickToOpenLink"))
+                            )
+                    )
+            );
             showcaseButton.appendSibling(new ChatComponentText(" "));
         }
 
-        downloadButton = new ChatComponentText("§b§l[" + Translations.getMessage(
-                "messages.updateChecker.downloadButton", targetVersion) + "]");
+        downloadButton = new ChatComponentText(
+                String.format("§b§l[%s]", getMessage("messages.updateChecker.downloadButton", targetVersion))
+        );
 
-        if (downloadLink != null && !downloadLink.equals("")) {
-            downloadButton.setChatStyle(downloadButton.getChatStyle().setChatClickEvent(
-                    new ClickEvent(ClickEvent.Action.OPEN_URL, downloadLink)).setChatHoverEvent(
-                            new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§7" +
-                                    Translations.getMessage("messages.clickToOpenLink")))));
+        if (downloadLink != null && !downloadLink.isEmpty()) {
+            downloadButton.setChatStyle(
+                    downloadButton.getChatStyle().setChatClickEvent(
+                            new ClickEvent(ClickEvent.Action.OPEN_URL, downloadLink)
+                    ).setChatHoverEvent(
+                            new HoverEvent(
+                                    HoverEvent.Action.SHOW_TEXT,
+                                    new ChatComponentText("§7" + getMessage("messages.clickToOpenLink"))
+                            )
+                    )
+            );
         } else {
-            downloadButton.setChatStyle(downloadButton.getChatStyle().setStrikethrough(true).setChatHoverEvent(
-                    new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§7" +
-                            Translations.getMessage("messages.updateChecker.noDownloadAvailable")))));
+            downloadButton.setChatStyle(
+                    downloadButton.getChatStyle().setStrikethrough(true).setChatHoverEvent(
+                            new HoverEvent(
+                                    HoverEvent.Action.SHOW_TEXT,
+                                    new ChatComponentText("§7" + getMessage("messages.updateChecker.noDownloadAvailable"))
+                            )
+                    )
+            );
         }
-
         downloadButton.appendSibling(new ChatComponentText(" "));
 
         if (showcaseButton != null) {
             showcaseButton.appendSibling(downloadButton);
         }
 
-        openModsFolderButton = new ChatComponentText("§e§l[" + Translations.getMessage(
-                "messages.updateChecker.openModFolderButton") + "]");
-        openModsFolderButton.setChatStyle(openModsFolderButton.getChatStyle().setChatClickEvent(
-                new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/sba folder")).setChatHoverEvent(
-                        new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                new ChatComponentText("§7" + Translations.getMessage("messages.clickToOpenFolder")))));
+        openModsFolderButton = new ChatComponentText(
+                String.format("§e§l[%s]", getMessage("messages.updateChecker.openModFolderButton"))
+        );
+        openModsFolderButton.setChatStyle(
+                openModsFolderButton.getChatStyle().setChatClickEvent(
+                        new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/sba folder")
+                ).setChatHoverEvent(
+                        new HoverEvent(
+                                HoverEvent.Action.SHOW_TEXT,
+                                new ChatComponentText("§7" + getMessage("messages.clickToOpenFolder"))
+                        )
+                )
+        );
         downloadButton.appendSibling(openModsFolderButton);
 
-        if (changelogLink != null && !changelogLink.equals("")) {
-            changelogButton = new ChatComponentText(" §9§l[" + Translations.getMessage(
-                    "messages.updateChecker.joinDiscordButton") + "]");
-            changelogButton.setChatStyle(changelogButton.getChatStyle().setChatClickEvent
-                    (new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/zWyr3f5GXz")).setChatHoverEvent(
-                            new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                    new ChatComponentText("§7" + Translations.getMessage("messages.clickToOpenLink")))));
+        if (changelogLink != null && !changelogLink.isEmpty()) {
+            changelogButton = new ChatComponentText(
+                    String.format(" §9§l[%s]", getMessage("messages.updateChecker.changelogButton"))
+            );
+            changelogButton.setChatStyle(
+                    changelogButton.getChatStyle().setChatClickEvent(
+                            new ClickEvent(ClickEvent.Action.OPEN_URL, changelogLink)
+                    ).setChatHoverEvent(
+                            new HoverEvent(
+                                    HoverEvent.Action.SHOW_TEXT,
+                                    new ChatComponentText("§7" + getMessage("messages.clickToOpenLink"))
+                            )
+                    )
+            );
             downloadButton.appendSibling(changelogButton);
         }
 

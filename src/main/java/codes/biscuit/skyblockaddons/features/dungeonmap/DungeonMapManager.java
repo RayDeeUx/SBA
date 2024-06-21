@@ -59,9 +59,9 @@ public class DungeonMapManager {
     /** The factor the player's coordinates are multiplied by to calculate their map marker coordinates */
     private static final float COORDINATE_FACTOR = 1.33F;
 
-    /** {@link EntityPlayerSP#lastReportedPosX} */
+    /** {@code EntityPlayerSP#lastReportedPosX} */
     static final Field lastReportedPosX;
-    /** {@link EntityPlayerSP#lastReportedPosZ} */
+    /** {@code EntityPlayerSP#lastReportedPosZ} */
     static final Field lastReportedPosZ;
 
     private static MapData mapData;
@@ -92,7 +92,7 @@ public class DungeonMapManager {
             mapData = null;
         }
 
-        ItemStack possibleMapItemStack = mc.thePlayer.inventory.getStackInSlot(8);
+        ItemStack possibleMapItemStack = mc.thePlayer == null ? null : mc.thePlayer.inventory.getStackInSlot(8);
         if (buttonLocation == null && (possibleMapItemStack == null || possibleMapItemStack.getItem() != Items.filled_map ||
                 !possibleMapItemStack.hasDisplayName()) && mapData == null) {
             return;
@@ -141,8 +141,6 @@ public class DungeonMapManager {
         main.getUtils().enableStandardGLOptions();
 
         GlStateManager.color(1, 1, 1, 1);
-
-        float rotation = 180 - MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw);
 
         float zoomScaleFactor = MathUtils.denormalizeSliderValue(main.getConfigValues().getMapZoom().getValue(), 0.5F, 5, 0.1F);
         if (isScoreSummary) {
@@ -214,15 +212,20 @@ public class DungeonMapManager {
                     }
 
                     if (rotate && rotateOnPlayer) {
-                        rotationCenterX = toRenderCoordinate(toMapCoordinate(mc.thePlayer.posX,
-                                markerOffsetX));
-                        rotationCenterY = toRenderCoordinate(toMapCoordinate(mc.thePlayer.posZ,
-                                markerOffsetZ));
+                        rotationCenterX = toRenderCoordinate(toMapCoordinate(mc.thePlayer.posX, markerOffsetX));
+                        rotationCenterY = toRenderCoordinate(toMapCoordinate(mc.thePlayer.posZ, markerOffsetZ));
                     }
 
                     if (rotate) {
                         if (rotateOnPlayer) {
                             GlStateManager.translate(size - rotationCenterX, size - rotationCenterY, 0);
+                        }
+
+                        float rotation;
+                        if (mc.thePlayer != null) {
+                            rotation = 180 - MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw);
+                        } else {
+                            rotation = 0; // Dummy
                         }
 
                         GlStateManager.translate(rotationCenterX, rotationCenterY, 0);
@@ -505,9 +508,9 @@ public class DungeonMapManager {
     }
 
     /**
-     * Returns the map zoom factor from {@link codes.biscuit.skyblockaddons.config.ConfigValues#mapZoom}.
+     * Returns the map zoom factor from {@code codes.biscuit.skyblockaddons.config.ConfigValues#mapZoom}.
      *
-     * @return the map zoom factor from {@link codes.biscuit.skyblockaddons.config.ConfigValues#mapZoom}
+     * @return the map zoom factor from {@code codes.biscuit.skyblockaddons.config.ConfigValues#mapZoom}
      */
     public static float getMapZoom() {
         return main.getConfigValues().getMapZoom().getValue();
@@ -526,7 +529,7 @@ public class DungeonMapManager {
     }
 
     /**
-     * Sets the map zoom factor in {@link codes.biscuit.skyblockaddons.config.ConfigValues#mapZoom}.
+     * Sets the map zoom factor in {@code codes.biscuit.skyblockaddons.config.ConfigValues#mapZoom}.
      * The new value must be between 0.5f and 5f inclusive.
      *
      * @param value the new map zoom factor

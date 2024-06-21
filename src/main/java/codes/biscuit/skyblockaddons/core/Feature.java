@@ -25,24 +25,23 @@ public enum Feature {
     FULL_INVENTORY_WARNING(7, "settings.fullInventoryWarning", new GuiFeatureData(ColorCode.RED), false, EnumUtils.FeatureSetting.REPEATING),
     SHOW_REFORGE_OVERLAY(10, "settings.showReforgeOverlay", null, false),
     MINION_STOP_WARNING(11, "settings.minionStopWarning", new GuiFeatureData(ColorCode.RED), true),
-    HIDE_HEALTH_BAR(13, "settings.hideHealthBar", null, true),
+    HIDE_HEALTH_BAR(13, "settings.hideHealthBar", null, true, EnumUtils.FeatureSetting.HIDE_ONLY_OUTSIDE_RIFT),
     DOUBLE_DROP_IN_OTHER_GAMES(14, null, false),
     MINION_FULL_WARNING(15, "settings.fullMinionWarning", new GuiFeatureData(ColorCode.RED), false),
     USE_VANILLA_TEXTURE_DEFENCE(17, "settings.useVanillaTexture", null, true),
     SHOW_BACKPACK_HOLDING_SHIFT(18, "settings.showOnlyWhenHoldingShift", null, true),
     MANA_BAR(19, "settings.manaBar", new GuiFeatureData(EnumUtils.DrawType.BAR, ColorCode.BLUE), false),
     MANA_TEXT(20, "settings.manaNumber", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.BLUE), false),
-    HEALTH_BAR(21, "settings.healthBar", new GuiFeatureData(EnumUtils.DrawType.BAR, ColorCode.RED), true, EnumUtils.FeatureSetting.CHANGE_BAR_COLOR_WITH_POTIONS, EnumUtils.FeatureSetting.HEALTH_PREDICTION),
-    HEALTH_TEXT(22, "settings.healthNumber", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.RED), false),
+    HEALTH_BAR(21, "settings.healthBar", new GuiFeatureData(EnumUtils.DrawType.BAR, ColorCode.RED), true, EnumUtils.FeatureSetting.CHANGE_BAR_COLOR_WITH_POTIONS, EnumUtils.FeatureSetting.HEALTH_PREDICTION, EnumUtils.FeatureSetting.HIDE_HEALTH_BAR_ON_RIFT),
+    HEALTH_TEXT(22, "settings.healthNumber", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.RED), false, EnumUtils.FeatureSetting.HIDE_HEALTH_TEXT_ON_RIFT, EnumUtils.FeatureSetting.HEART_INSTEAD_HEALTH_ON_RIFT),
     DEFENCE_ICON(23, "settings.defenseIcon", new GuiFeatureData(EnumUtils.DrawType.DEFENCE_ICON), false, EnumUtils.FeatureSetting.USE_VANILLA_TEXTURE),
     DEFENCE_TEXT(24, "settings.defenseNumber", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.GREEN), false, EnumUtils.FeatureSetting.OTHER_DEFENCE_STATS),
     DEFENCE_PERCENTAGE(25, "settings.defensePercentage", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.GREEN), true),
-    HEALTH_UPDATES(26, "settings.healthUpdates", new GuiFeatureData(EnumUtils.DrawType.TEXT), false), // Health updates all credit to DidiSkywalker#9975
+    HEALTH_UPDATES(26, "settings.healthUpdates", new GuiFeatureData(EnumUtils.DrawType.TEXT), false, EnumUtils.FeatureSetting.HIDE_HEALTH_UPDATES_ON_RIFT), // Health updates all credit to DidiSkywalker#9975
     HIDE_PLAYERS_IN_LOBBY(27, "settings.hidePlayersInLobby", null, true),
     DARK_AUCTION_TIMER(28, "settings.darkAuctionTimer", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.GOLD), false, EnumUtils.FeatureSetting.ENABLED_IN_OTHER_GAMES),
     ITEM_PICKUP_LOG(29, "settings.itemPickupLog", new GuiFeatureData(EnumUtils.DrawType.PICKUP_LOG), false),
     SHOW_DARK_AUCTION_TIMER_IN_OTHER_GAMES(33, null, false),
-    SHOW_ITEM_ANVIL_USES(34, "settings.showItemAnvilUses", new GuiFeatureData(ColorCode.RED, true), false),
     DONT_RESET_CURSOR_INVENTORY(37, "settings.dontResetCursorInventory", null, false),
     LOCK_SLOTS(38, "settings.lockSlots", null, false),
     SUMMONING_EYE_ALERT(39, "settings.summoningEyeAlert", new GuiFeatureData(ColorCode.RED), false),
@@ -51,7 +50,6 @@ public enum Feature {
     MAKE_BACKPACK_INVENTORIES_COLORED(43, "settings.makeBackpackInventoriesColored", null, false),
     REPLACE_ROMAN_NUMERALS_WITH_NUMBERS(45, "settings.replaceRomanNumeralsWithNumbers", null, true, EnumUtils.FeatureSetting.DONT_REPLACE_ROMAN_NUMERALS_IN_ITEM_NAME),
     CHANGE_BAR_COLOR_FOR_POTIONS(46, "settings.changeBarColorForPotions", null, false),
-    //CRAFTING_PATTERNS(47, Message.SETTING_CRAFTING_PATTERNS, false),
     FISHING_SOUND_INDICATOR(48, "settings.soundIndicatorForFishing", null, false),
     AVOID_BLINKING_NIGHT_VISION(49, "settings.avoidBlinkingNightVision", null, false),
     MINION_DISABLE_LOCATION_WARNING(50, "settings.disableMinionLocationWarning", null, false),
@@ -67,19 +65,17 @@ public enum Feature {
     HIDE_PET_HEALTH_BAR(63, "settings.hidePetHealthBar", null, false),
     // Release v1.4
     DISABLE_MAGICAL_SOUP_MESSAGES(64, "settings.disableMagicalSoupMessage", null,true),
-    POWER_ORB_STATUS_DISPLAY(65, "settings.powerOrbDisplay", new GuiFeatureData(EnumUtils.DrawType.POWER_ORB_DISPLAY, null), false, EnumUtils.FeatureSetting.POWER_ORB_DISPLAY_STYLE),
+    DEPLOYABLE_STATUS_DISPLAY(65, "settings.deployableDisplay", new GuiFeatureData(EnumUtils.DrawType.DEPLOYABLE_DISPLAY, null), false, EnumUtils.FeatureSetting.DEPLOYABLE_DISPLAY_STYLE, EnumUtils.FeatureSetting.EXPAND_DEPLOYABLE_STATUS),
     ZEALOT_COUNTER(66, "settings.zealotCounter", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.DARK_AQUA), false, EnumUtils.FeatureSetting.ZEALOT_SPAWN_AREAS_ONLY),
     TICKER_CHARGES_DISPLAY(67, "settings.tickerChargesDisplay", new GuiFeatureData(EnumUtils.DrawType.TICKER, null), false),
-    TAB_EFFECT_TIMERS(68, "settings.tabEffectTimers", new GuiFeatureData(EnumUtils.DrawType.TAB_EFFECT_TIMERS, ColorCode.WHITE), true),
     NO_ARROWS_LEFT_ALERT(69, "settings.noArrowsLeftAlert", new GuiFeatureData(ColorCode.RED), false),
     CAKE_BAG_PREVIEW(71, "settings.showCakeBagPreview", null, true),
     REPEAT_FULL_INVENTORY_WARNING(73, null, true),
-    SHOW_BROKEN_FRAGMENTS(75, "settings.showBrokenFragments", new GuiFeatureData(ColorCode.RED, true), false),
     SKYBLOCK_ADDONS_BUTTON_IN_PAUSE_MENU(76, "settings.skyblockAddonsButtonInPauseMenu", null, false),
     SHOW_TOTAL_ZEALOT_COUNT(77, "settings.showTotalZealotCount", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.DARK_AQUA), true, EnumUtils.FeatureSetting.ZEALOT_SPAWN_AREAS_ONLY),
     SHOW_SUMMONING_EYE_COUNT(78, "settings.showSummoningEyeCount", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.DARK_AQUA), true, EnumUtils.FeatureSetting.ZEALOT_SPAWN_AREAS_ONLY),
     SHOW_AVERAGE_ZEALOTS_PER_EYE(79, "settings.showZealotsPerEye", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.DARK_AQUA), true, EnumUtils.FeatureSetting.ZEALOT_SPAWN_AREAS_ONLY),
-    TURN_BOW_GREEN_WHEN_USING_TOXIC_ARROW_POISON(80, "settings.turnBowGreenWhenUsingToxicArrowPoison", null, false),
+    TURN_BOW_COLOR_WHEN_USING_ARROW_POISON(80, "settings.turnBowGreenWhenUsingToxicArrowPoison", null, false),
     BIRCH_PARK_RAINMAKER_TIMER(81, "settings.birchParkRainmakerTimer", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.DARK_AQUA), false),
     DISCORD_RPC(83, "settings.discordRP", null, true, EnumUtils.FeatureSetting.DISCORD_RP_DETAILS, EnumUtils.FeatureSetting.DISCORD_RP_STATE),
     ENDSTONE_PROTECTOR_DISPLAY(84, "settings.endstoneProtectorDisplay", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.WHITE), false),
@@ -96,12 +92,12 @@ public enum Feature {
     HIDE_SVEN_PUP_NAMETAGS(97, "settings.hideSvenPupNametags", null, true),
     REPEAT_SLAYER_BOSS_WARNING(98, null, true),
     // Release v1.5
-    DUNGEONS_MAP_DISPLAY(99, "settings.dungeonMapDisplay", new GuiFeatureData(EnumUtils.DrawType.DUNGEONS_MAP, ColorCode.BLACK), false, EnumUtils.FeatureSetting.ROTATE_MAP, EnumUtils.FeatureSetting.CENTER_ROTATION_ON_PLAYER, EnumUtils.FeatureSetting.SHOW_PLAYER_HEADS_ON_MAP, EnumUtils.FeatureSetting.MAP_ZOOM),
+    DUNGEONS_MAP_DISPLAY(99, "settings.dungeonMapDisplay", new GuiFeatureData(EnumUtils.DrawType.DUNGEONS_MAP, ColorCode.BLACK), false, EnumUtils.FeatureSetting.ROTATE_MAP, EnumUtils.FeatureSetting.CENTER_ROTATION_ON_PLAYER, EnumUtils.FeatureSetting.SHOW_PLAYER_HEADS_ON_MAP, EnumUtils.FeatureSetting.CHANGE_DUNGEON_MAP_ZOOM_WITH_KEYBOARD,EnumUtils.FeatureSetting.MAP_ZOOM),
     ROTATE_MAP(100, "settings.rotateMap", null, false),
     CENTER_ROTATION_ON_PLAYER(101, "settings.centerRotationOnYourPlayer", null, false),
     MAP_ZOOM(-1, "settings.mapZoom", null, false),
     MAKE_DROPPED_ITEMS_GLOW(102, "settings.glowingDroppedItems", null, false, EnumUtils.FeatureSetting.SHOW_GLOWING_ITEMS_ON_ISLAND),
-    MAKE_DUNGEON_TEAMMATES_GLOW(103, "settings.outlineDungeonTeammates", null, false),
+    OUTLINE_DUNGEON_TEAMMATES(103, null, null, false),
     SHOW_BASE_STAT_BOOST_PERCENTAGE(104, "settings.baseStatBoostPercentage", new GuiFeatureData(ColorCode.RED, true), false, EnumUtils.FeatureSetting.COLOUR_BY_RARITY),
     BASE_STAT_BOOST_COLOR_BY_RARITY(105, "settings.colorByRarity", null, true),
     SHOW_PLAYER_HEADS_ON_MAP(106, "settings.showPlayerHeadsOnMap", null, true),
@@ -112,7 +108,6 @@ public enum Feature {
     SHOW_DUNGEON_MILESTONE(111, "settings.showDungeonMilestone", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.YELLOW), false),
     DUNGEONS_COLLECTED_ESSENCES_DISPLAY(112, "settings.dungeonsCollectedEssencesDisplay", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.YELLOW), false, EnumUtils.FeatureSetting.SHOW_SALVAGE_ESSENCES_COUNTER, EnumUtils.FeatureSetting.RESET_SALVAGED_ESSENCES_AFTER_LEAVING_MENU),
     STOP_BONZO_STAFF_SOUNDS(113, "settings.stopBonzoStaffSounds", null, true),
-    SHOW_RARITY_UPGRADED(114, "settings.showRarityUpgraded", new GuiFeatureData(ColorCode.LIGHT_PURPLE, true), false),
     SKILL_ACTIONS_LEFT_UNTIL_NEXT_LEVEL(115, null, true),
     REVENANT_SLAYER_TRACKER(116, "settings.revenantSlayerTracker", new GuiFeatureData(EnumUtils.DrawType.SLAYER_TRACKERS, ColorCode.WHITE), false, EnumUtils.FeatureSetting.COLOUR_BY_RARITY, EnumUtils.FeatureSetting.TEXT_MODE, EnumUtils.FeatureSetting.HIDE_WHEN_NOT_IN_CRYPTS),
     TARANTULA_SLAYER_TRACKER(117, "settings.tarantulaSlayerTracker", new GuiFeatureData(EnumUtils.DrawType.SLAYER_TRACKERS, ColorCode.WHITE), false, EnumUtils.FeatureSetting.COLOUR_BY_RARITY, EnumUtils.FeatureSetting.TEXT_MODE, EnumUtils.FeatureSetting.HIDE_WHEN_NOT_IN_SPIDERS_DEN),
@@ -137,8 +132,8 @@ public enum Feature {
     DUNGEON_DEATH_COUNTER(136, "settings.dungeonDeathCounter", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.RED), true),
     SHOW_PERSONAL_COMPACTOR_PREVIEW(137, null, false),
     ROCK_PET_TRACKER(138, "settings.rockPetTracker", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.GRAY), true),
-    DOLPHIN_PET_TRACKER(139, "settings.dolphinPetTracker", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.AQUA), true),
-    SHOW_DUNGEON_TEAMMATE_NAME_OVERLAY(140, "settings.dungeonsTeammateNameOverlay", null, false),
+    DOLPHIN_PET_TRACKER(139, "settings.dolphinPetTracker", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.AQUA), true, EnumUtils.FeatureSetting.SHOW_ONLY_HOLDING_FISHING_ROD),
+    SHOW_DUNGEON_TEAMMATE_NAME_OVERLAY(140, "settings.dungeonsTeammateNameOverlay", null, false, EnumUtils.FeatureSetting.STOP_NAME_OVERLAY_WHEN_CLOSE),
     SHOW_STACKING_ENCHANT_PROGRESS(141, "settings.stackingEnchantProgress", new GuiFeatureData(ColorCode.RED, true), false),
     DUNGEONS_SECRETS_DISPLAY(142, "settings.dungeonsSecretsDisplay", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.GRAY), false),
     SKILL_PROGRESS_BAR(143, "settings.skillProgressBar", new GuiFeatureData(EnumUtils.DrawType.BAR, ColorCode.GREEN), true),
@@ -153,17 +148,14 @@ public enum Feature {
     ENCHANTMENTS_HIGHLIGHT(153, "settings.highlightSpecialEnchantments", null, false),
     CANDY_POINTS_COUNTER(155, "settings.candyPointsCounter", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.GOLD), false),
     HEALING_CIRCLE_OPACITY(156, "settings.healingCircleOpacity", null, false),
-    USE_NEW_CHROMA_EFFECT(157, "settings.useNewChromaEffect", null, false),
     SHOW_EXPERIMENTATION_TABLE_TOOLTIPS(158, "settings.showExperimentationTableTooltips", null, true),
     DRILL_FUEL_BAR(160, "settings.drillFuelBar", new GuiFeatureData(EnumUtils.DrawType.BAR, ColorCode.DARK_GREEN), false),
-    DRILL_FUEL_TEXT(161, "settings.drillFuelNumber", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.DARK_GREEN), false),
+    DRILL_FUEL_TEXT(161, "settings.drillFuelNumber", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.DARK_GREEN), false, EnumUtils.FeatureSetting.ABBREVIATE_DRILL_FUEL_DENOMINATOR),
     FISHING_PARTICLE_OVERLAY(162, "settings.fishingParticleOverlay", new GuiFeatureData(ColorCode.WHITE), false, EnumUtils.FeatureSetting.BIGGER_WAKE),
-    COOLDOWN_PREDICTION(164, "settings.cooldownPrediction", null, false),
     ENCHANTMENT_PERFECT_COLOR(165, "enchants.superTier", new GuiFeatureData(ColorCode.CHROMA, true), false),
     ENCHANTMENT_GREAT_COLOR(166, "enchants.highTier", new GuiFeatureData(ColorCode.GOLD, true), false),
     ENCHANTMENT_GOOD_COLOR(167, "enchants.midTier", new GuiFeatureData(ColorCode.BLUE, true), false),
     ENCHANTMENT_POOR_COLOR(168, "enchants.lowTier", new GuiFeatureData(ColorCode.GRAY, true), false),
-    LEG_MONKEY_LEVEL_100(169, "settings.legendaryMonkeyLevel100", null, true),
     BIGGER_WAKE(170, "settings.biggerWake", null, false),
     ENCHANTMENT_COMMA_COLOR(171, "enchants.commas", new GuiFeatureData(ColorCode.BLUE, true), false),
     REFORGE_FILTER(172, "settings.reforgeFilter", null, false),
@@ -171,7 +163,7 @@ public enum Feature {
     TREVOR_HIGHLIGHT_TRACKED_ENTITY(174, "settings.trevorTheTrapper.highlightTrackedEntity", null, false),
     TREVOR_SHOW_QUEST_COOLDOWN(175, "settings.trevorTheTrapper.showQuestCooldown", null, false),
     HIDE_ENCHANT_DESCRIPTION(176, "settings.hideEnchantDescription", null, true),
-    TREVOR_THE_TRAPPER_FEATURES(177, "settings.trevorTheTrapper.title", null, false, EnumUtils.FeatureSetting.TREVOR_TRACKED_ENTITY_PROXIMITY_INDICATOR, EnumUtils.FeatureSetting.TREVOR_HIGHLIGHT_TRACKED_ENTITY, EnumUtils.FeatureSetting.TREVOR_SHOW_QUEST_COOLDOWN),
+    TREVOR_THE_TRAPPER_FEATURES(177, "settings.trevorTheTrapper.title", null, false, EnumUtils.FeatureSetting.TREVOR_TRACKED_ENTITY_PROXIMITY_INDICATOR, EnumUtils.FeatureSetting.TREVOR_HIGHLIGHT_TRACKED_ENTITY, EnumUtils.FeatureSetting.TREVOR_BETTER_NAMETAG, EnumUtils.FeatureSetting.TREVOR_SHOW_QUEST_COOLDOWN),
     FETCHUR_TODAY(178, "settings.fetchurToday", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.GREEN), false, EnumUtils.FeatureSetting.SHOW_FETCHUR_ITEM_NAME, EnumUtils.FeatureSetting.SHOW_FETCHUR_ONLY_IN_DWARVENS, EnumUtils.FeatureSetting.SHOW_FETCHUR_INVENTORY_OPEN_ONLY, EnumUtils.FeatureSetting.WARN_WHEN_FETCHUR_CHANGES),
     SHOW_FETCHUR_ONLY_IN_DWARVENS(179, "settings.showFetchurOnlyInDwarven", null, true),
     SHOW_FETCHUR_ITEM_NAME(180, "settings.showFetchurItemName", null, true),
@@ -187,10 +179,10 @@ public enum Feature {
     HIDE_PLAYERS_NEAR_NPCS(190, "settings.hidePlayersNearNPCs", null, false),
     OVERFLOW_MANA(191, "settings.showOverflowManaNumber", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.DARK_AQUA), false),
     DOUBLE_WARP(192, "settings.doubleWarp", null, true),
-    JUNGLE_AXE_COOLDOWN(193, "settings.axeCooldownIndicator", null, true, EnumUtils.FeatureSetting.COOLDOWN_PREDICTION, EnumUtils.FeatureSetting.LEVEL_100_LEG_MONKEY),
+    //JUNGLE_AXE_COOLDOWN(193, "settings.axeCooldownIndicator", null, true, EnumUtils.FeatureSetting.COOLDOWN_PREDICTION, EnumUtils.FeatureSetting.LEVEL_100_LEG_MONKEY),
     HEALTH_PREDICTION(194, "settings.vanillaHealthPrediction", null, true),
     DISABLE_EMPTY_GLASS_PANES(195, "settings.hideMenuGlassPanes", null, false),
-    ENTITY_OUTLINES(196, "settings.entityOutlines", null, false, EnumUtils.FeatureSetting.DUNGEON_PLAYER_GLOW, EnumUtils.FeatureSetting.ITEM_GLOW, EnumUtils.FeatureSetting.TREVOR_HIGHLIGHT_TRACKED_ENTITY),
+    ENTITY_OUTLINES(196, "settings.entityOutlines", null, false, EnumUtils.FeatureSetting.OUTLINE_DUNGEON_TEAMMATES, EnumUtils.FeatureSetting.ITEM_GLOW, EnumUtils.FeatureSetting.OUTLINE_SHOWCASE_ITEMS, EnumUtils.FeatureSetting.TREVOR_HIGHLIGHT_TRACKED_ENTITY),
     EFFECTIVE_HEALTH_TEXT(197, "settings.effectiveHealthNumber", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.DARK_GREEN), false),
     ABBREVIATE_SKILL_XP_DENOMINATOR(198, "settings.abbreviateSkillXpDenominator", null, true),
     OTHER_DEFENCE_STATS(199, "settings.otherDefenseStats", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.GREEN), false),
@@ -210,12 +202,40 @@ public enum Feature {
     DEVELOPER_MODE(212, "settings.devMode", null, true),
     SHOW_SKYBLOCK_ITEM_ID(213, "settings.showSkyblockItemId", null, true),
     RESET_SALVAGED_ESSENCES_AFTER_LEAVING_MENU(214, "settings.resetSalvagedEssencesAfterLeavingMenu", null, false),
-    CHANGE_DUNGEON_MAP_ZOOM_WITH_KEYBOARD(215, "settings.changeDungeonMapZoomWithKeyboard", null, false),
+    CHANGE_DUNGEON_MAP_ZOOM_WITH_KEYBOARD(215, null, false),
+    // Release 1.7
     PLAYER_SYMBOLS_IN_CHAT(216, "settings.showPlayerSymbolsInChat", null, false, EnumUtils.FeatureSetting.SHOW_PROFILE_TYPE, EnumUtils.FeatureSetting.SHOW_NETHER_FACTION),
     CRIMSON_ARMOR_ABILITY_STACKS(217, "settings.crimsonArmorAbilityStacks", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.GOLD), false),
     HIDE_TRUE_DEFENSE(218, "settings.hideTrueDefense", new GuiFeatureData(ColorCode.RED), false),
-    SHOW_PROFILE_TYPE(219, "settings.showProfileType", false),
-    SHOW_NETHER_FACTION(220,"settings.showNetherFaction", false),
+    SHOW_PROFILE_TYPE(219, null, false),
+    SHOW_NETHER_FACTION(220,null, false),
+    // Release Fix3dll
+	HIDE_WHEN_NOT_IN_CRIMSON(222, null, false),
+    INFERNO_SLAYER_TRACKER(223, "settings.infernoSlayerTracker", new GuiFeatureData(EnumUtils.DrawType.SLAYER_TRACKERS, ColorCode.WHITE), false, EnumUtils.FeatureSetting.COLOUR_BY_RARITY, EnumUtils.FeatureSetting.TEXT_MODE, EnumUtils.FeatureSetting.HIDE_WHEN_NOT_IN_CRIMSON),
+    INFERNO_COLOR_BY_RARITY(224, null, false),
+    INFERNO_TEXT_MODE(225, null, true),
+    EXPAND_DEPLOYABLE_STATUS(226, null, false),
+    TREVOR_BETTER_NAMETAG(227, null, false),
+    RIFTSTALKER_SLAYER_TRACKER(228, "settings.riftstalkerSlayerTracker", new GuiFeatureData(EnumUtils.DrawType.SLAYER_TRACKERS, ColorCode.WHITE), false, EnumUtils.FeatureSetting.COLOUR_BY_RARITY, EnumUtils.FeatureSetting.TEXT_MODE, EnumUtils.FeatureSetting.HIDE_WHEN_NOT_IN_RIFT),
+    RIFTSTALKER_COLOR_BY_RARITY(229, null, false),
+    RIFTSTALKER_TEXT_MODE(230, null, true),
+    HIDE_WHEN_NOT_IN_RIFT(231, null, false),
+    ABBREVIATE_DRILL_FUEL_DENOMINATOR(232, null, true),
+    SHOW_ONLY_HOLDING_FISHING_ROD(233, null, null, true),
+    HIDE_HEALTH_BAR_ON_RIFT(234, null, true),
+    HIDE_HEALTH_TEXT_ON_RIFT(235, null, true),
+    HIDE_HEALTH_UPDATES_ON_RIFT(236, null, true),
+    HIDE_ONLY_OUTSIDE_RIFT(237, null, true),
+    FIRE_FREEZE_TIMER(238, "settings.fireFreezeTimer", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.YELLOW), false, EnumUtils.FeatureSetting.FIRE_FREEZE_SOUND, EnumUtils.FeatureSetting.FIRE_FREEZE_WHEN_HOLDING),
+    FIRE_FREEZE_SOUND(239, null, false),
+    FIRE_FREEZE_WHEN_HOLDING(240, null, false),
+    HIDE_HAUNTED_SKULLS(241, "settings.hideHauntedSkulls", null, true),
+    THUNDER_BOTTLE_DISPLAY(242, "settings.thunderBottleDisplay", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.DARK_PURPLE), false),
+    HEART_INSTEAD_HEALTH_ON_RIFT(244, null, true),
+    OUTLINE_SHOWCASE_ITEMS(245, null, false),
+    PET_DISPLAY(246, "settings.petDisplay", new GuiFeatureData(EnumUtils.DrawType.TEXT, ColorCode.GOLD), false, EnumUtils.FeatureSetting.PET_ITEM_STYLE),
+    STOP_NAME_OVERLAY_WHEN_CLOSE(247, null, true),
+
 
     WARNING_TIME(-1, "settings.warningDuration", null, false),
     WARP_ADVANCED_MODE(-1, "settings.advancedMode", null, true),
@@ -237,31 +257,38 @@ public enum Feature {
     CHROMA_SIZE(-1, "settings.chromaSize", null, false),
     CHROMA_SATURATION(-1, "settings.chromaSaturation", null, false),
     CHROMA_BRIGHTNESS(-1, "settings.chromaBrightness", null, false),
-    TURN_ALL_FEATURES_CHROMA(-1, "settings.turnAllFeaturesChroma", null, false);
+    TURN_ALL_FEATURES_CHROMA(-1, "settings.turnAllFeaturesChroma", null, false),
+    NUMBER_SEPARATORS(221, "settings.numberSeparators", null, false),
+    TURN_ALL_TEXTS_CHROMA(243, "settings.turnAllTextsChroma", null, true);
 
 
     /**
      * These are "features" that are not actually features, but just hold the place of a setting. If you are adding any new settings and create
      * a feature here, make sure to add it!
      */
-    private static final Set<Feature> SETTINGS = Sets.newHashSet(DOUBLE_DROP_IN_OTHER_GAMES,
-            USE_VANILLA_TEXTURE_DEFENCE, SHOW_BACKPACK_HOLDING_SHIFT,
+    private static final Set<Feature> SETTINGS = Sets.newHashSet(DOUBLE_DROP_IN_OTHER_GAMES, SHOW_PROFILE_TYPE,
+            USE_VANILLA_TEXTURE_DEFENCE, SHOW_BACKPACK_HOLDING_SHIFT, OUTLINE_DUNGEON_TEAMMATES, SHOW_NETHER_FACTION,
             MAKE_BACKPACK_INVENTORIES_COLORED, CHANGE_BAR_COLOR_FOR_POTIONS, ENABLE_MESSAGE_WHEN_BREAKING_STEMS,
             ENABLE_MESSAGE_WHEN_MINING_DEEP_CAVERNS, ENABLE_MESSAGE_WHEN_MINING_NETHER, CAKE_BAG_PREVIEW,
-            REPEAT_FULL_INVENTORY_WARNING, DOUBLE_WARP,
+            REPEAT_FULL_INVENTORY_WARNING, DOUBLE_WARP, RIFTSTALKER_COLOR_BY_RARITY, RIFTSTALKER_TEXT_MODE,
             REPEAT_SLAYER_BOSS_WARNING, ROTATE_MAP, CENTER_ROTATION_ON_PLAYER, MAP_ZOOM, BASE_STAT_BOOST_COLOR_BY_RARITY,
             SHOW_PLAYER_HEADS_ON_MAP, SHOW_GLOWING_ITEMS_ON_ISLAND, SKILL_ACTIONS_LEFT_UNTIL_NEXT_LEVEL, REVENANT_COLOR_BY_RARITY,
             TARANTULA_COLOR_BY_RARITY, SVEN_COLOR_BY_RARITY, REVENANT_TEXT_MODE, TARANTULA_TEXT_MODE, SVEN_TEXT_MODE,
-            DRAGON_STATS_TRACKER_COLOR_BY_RARITY, HIDE_WHEN_NOT_IN_CASTLE, HIDE_WHEN_NOT_IN_SPIDERS_DEN,
-            HIDE_WHEN_NOT_IN_CRYPTS, SHOW_PERSONAL_COMPACTOR_PREVIEW, SHOW_SKILL_PERCENTAGE_INSTEAD_OF_XP, SHOW_SKILL_XP_GAINED,
-            SHOW_SALVAGE_ESSENCES_COUNTER, HEALING_CIRCLE_OPACITY, COOLDOWN_PREDICTION, ENCHANTMENTS_HIGHLIGHT,
+            DRAGON_STATS_TRACKER_COLOR_BY_RARITY, HIDE_WHEN_NOT_IN_CASTLE, HIDE_WHEN_NOT_IN_SPIDERS_DEN, HIDE_WHEN_NOT_IN_END,
+            ENDERMAN_COLOR_BY_RARITY, ENDERMAN_TEXT_MODE, HIDE_WHEN_NOT_IN_CRIMSON, INFERNO_COLOR_BY_RARITY, INFERNO_TEXT_MODE,
+            HIDE_WHEN_NOT_IN_CRYPTS, HIDE_WHEN_NOT_IN_RIFT, SHOW_PERSONAL_COMPACTOR_PREVIEW, SHOW_SKILL_PERCENTAGE_INSTEAD_OF_XP,
+            SHOW_SKILL_XP_GAINED, SHOW_SALVAGE_ESSENCES_COUNTER, HEALING_CIRCLE_OPACITY, ENCHANTMENTS_HIGHLIGHT,
             ENCHANTMENT_COMMA_COLOR, ENCHANTMENT_PERFECT_COLOR, ENCHANTMENT_GREAT_COLOR, ENCHANTMENT_GOOD_COLOR,
-            ENCHANTMENT_POOR_COLOR, BIGGER_WAKE, LEG_MONKEY_LEVEL_100, HIDE_ENCHANT_DESCRIPTION, HIDE_GREY_ENCHANTS,
+            ENCHANTMENT_POOR_COLOR, BIGGER_WAKE, HIDE_ENCHANT_DESCRIPTION, HIDE_GREY_ENCHANTS,
             TREVOR_TRACKED_ENTITY_PROXIMITY_INDICATOR, TREVOR_HIGHLIGHT_TRACKED_ENTITY, TREVOR_SHOW_QUEST_COOLDOWN,
             SHOW_FETCHUR_ONLY_IN_DWARVENS, SHOW_FETCHUR_ITEM_NAME, SHOW_FETCHUR_INVENTORY_OPEN_ONLY, WARN_WHEN_FETCHUR_CHANGES,
             STOP_ONLY_RAT_SQUEAK, SHOW_ENDER_CHEST_PREVIEW, HEALTH_PREDICTION, ABBREVIATE_SKILL_XP_DENOMINATOR, OTHER_DEFENCE_STATS,
             DISABLE_SPIRIT_SCEPTRE_MESSAGES, OUTBID_ALERT_SOUND_IN_OTHER_GAMES, DONT_REPLACE_ROMAN_NUMERALS_IN_ITEM_NAME,
-            RESET_SALVAGED_ESSENCES_AFTER_LEAVING_MENU);
+            RESET_SALVAGED_ESSENCES_AFTER_LEAVING_MENU, ABBREVIATE_DRILL_FUEL_DENOMINATOR, TREVOR_BETTER_NAMETAG,
+            SHOW_ONLY_HOLDING_FISHING_ROD, HIDE_HEALTH_BAR_ON_RIFT, HIDE_HEALTH_TEXT_ON_RIFT, HIDE_HEALTH_UPDATES_ON_RIFT,
+            HIDE_ONLY_OUTSIDE_RIFT, FIRE_FREEZE_SOUND, FIRE_FREEZE_WHEN_HOLDING, HEART_INSTEAD_HEALTH_ON_RIFT,
+            OUTLINE_SHOWCASE_ITEMS, CHANGE_DUNGEON_MAP_ZOOM_WITH_KEYBOARD, DRAGON_STATS_TRACKER_NEST_ONLY,
+            STOP_NAME_OVERLAY_WHEN_CLOSE);
 
     /**
      * Features that are considered gui ones. This is used for examnple when saving the config to ensure that these features'
@@ -269,23 +296,24 @@ public enum Feature {
      */
     @Getter
     private static final Set<Feature> guiFeatures = new LinkedHashSet<>(Arrays.asList(DRILL_FUEL_BAR, SKILL_PROGRESS_BAR, MANA_BAR, HEALTH_BAR,
-            MANA_TEXT, OVERFLOW_MANA, DEFENCE_ICON, DEFENCE_TEXT, EFFECTIVE_HEALTH_TEXT,
+            MANA_TEXT, OVERFLOW_MANA, DEFENCE_ICON, DEFENCE_TEXT, EFFECTIVE_HEALTH_TEXT, PET_DISPLAY,
             DEFENCE_PERCENTAGE, HEALTH_TEXT, SKELETON_BAR, HEALTH_UPDATES, ITEM_PICKUP_LOG, DARK_AUCTION_TIMER, SKILL_DISPLAY, SPEED_PERCENTAGE,
-            SLAYER_INDICATOR, POWER_ORB_STATUS_DISPLAY, ZEALOT_COUNTER, TICKER_CHARGES_DISPLAY, TAB_EFFECT_TIMERS, SHOW_TOTAL_ZEALOT_COUNT, SHOW_SUMMONING_EYE_COUNT,
+            SLAYER_INDICATOR, DEPLOYABLE_STATUS_DISPLAY, ZEALOT_COUNTER, TICKER_CHARGES_DISPLAY, SHOW_TOTAL_ZEALOT_COUNT, SHOW_SUMMONING_EYE_COUNT,
             SHOW_AVERAGE_ZEALOTS_PER_EYE, BIRCH_PARK_RAINMAKER_TIMER, ENDSTONE_PROTECTOR_DISPLAY, BAIT_LIST, DUNGEONS_MAP_DISPLAY, SHOW_DUNGEON_MILESTONE,
             DUNGEONS_COLLECTED_ESSENCES_DISPLAY, REVENANT_SLAYER_TRACKER, TARANTULA_SLAYER_TRACKER, SVEN_SLAYER_TRACKER, DRAGON_STATS_TRACKER, DUNGEON_DEATH_COUNTER,
-            ROCK_PET_TRACKER, DOLPHIN_PET_TRACKER, DUNGEONS_SECRETS_DISPLAY, CANDY_POINTS_COUNTER, DRILL_FUEL_TEXT,
+            ROCK_PET_TRACKER, DOLPHIN_PET_TRACKER, DUNGEONS_SECRETS_DISPLAY, CANDY_POINTS_COUNTER, DRILL_FUEL_TEXT, INFERNO_SLAYER_TRACKER,
             TREVOR_TRACKED_ENTITY_PROXIMITY_INDICATOR, FETCHUR_TODAY, VOIDGLOOM_SLAYER_TRACKER, OTHER_DEFENCE_STATS, SPIRIT_SCEPTRE_DISPLAY, FARM_EVENT_TIMER,
-            CRIMSON_ARMOR_ABILITY_STACKS, HIDE_TRUE_DEFENSE));
+            CRIMSON_ARMOR_ABILITY_STACKS, HIDE_TRUE_DEFENSE, RIFTSTALKER_SLAYER_TRACKER, FIRE_FREEZE_TIMER, THUNDER_BOTTLE_DISPLAY));
 
     /**
      * These are features that are displayed separate, on the general tab.
      */
     @Getter
-    private static final Set<Feature> generalTabFeatures = new LinkedHashSet<>(Arrays.asList(TEXT_STYLE, WARNING_TIME, CHROMA_SPEED, CHROMA_MODE,
-            CHROMA_SIZE, TURN_ALL_FEATURES_CHROMA, CHROMA_SATURATION, CHROMA_BRIGHTNESS, USE_NEW_CHROMA_EFFECT, DEVELOPER_MODE));
+    private static final Set<Feature> generalTabFeatures = new LinkedHashSet<>(Arrays.asList(TEXT_STYLE, WARNING_TIME,
+            CHROMA_SPEED, CHROMA_MODE, CHROMA_SIZE, TURN_ALL_FEATURES_CHROMA, CHROMA_SATURATION, CHROMA_BRIGHTNESS,
+            NUMBER_SEPARATORS, DEVELOPER_MODE, TURN_ALL_TEXTS_CHROMA));
 
-    private static final int ID_AT_PREVIOUS_UPDATE = 199;
+    private static final int ID_AT_PREVIOUS_UPDATE = 221;
 
     private final int id;
     private final List<EnumUtils.FeatureSetting> settings;
@@ -313,7 +341,7 @@ public enum Feature {
     }
 
     /**
-     * Called when a features enable state is changed.
+     * Called right after a feature's enable state is changed.
      */
     public void onToggle() {
         if (this.id == DEVELOPER_MODE.id) {
@@ -334,12 +362,14 @@ public enum Feature {
      * @param enabled {@code true} to enable the feature, {@code false} to disable it
      */
     public void setEnabled(boolean enabled) {
+        SkyblockAddons main = SkyblockAddons.getInstance();
         if (enabled) {
-            SkyblockAddons.getInstance().getConfigValues().getDisabledFeatures().remove(this);
+            main.getConfigValues().getDisabledFeatures().remove(this);
         } else {
-            SkyblockAddons.getInstance().getConfigValues().getDisabledFeatures().add(this);
+            main.getConfigValues().getDisabledFeatures().add(this);
         }
         onToggle();
+        main.getConfigValues().saveConfig();
     }
 
     public boolean isActualFeature() {
@@ -372,37 +402,49 @@ public enum Feature {
     }
 
     public void draw(float scale, Minecraft mc, ButtonLocation buttonLocation) {
-        if (guiFeatureData != null) {
-            SkyblockAddons main = SkyblockAddons.getInstance();
-            if (guiFeatureData.getDrawType() == EnumUtils.DrawType.BAR) {
-                main.getRenderListener().drawBar(this, scale, mc, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.SKELETON_BAR) {
+        if (guiFeatureData == null || guiFeatureData.getDrawType() == null) return;
+
+        SkyblockAddons main = SkyblockAddons.getInstance();
+        switch (guiFeatureData.getDrawType()) {
+            case SKELETON_BAR:
                 main.getRenderListener().drawSkeletonBar(mc, scale, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.TEXT) {
+                break;
+            case BAR:
+                main.getRenderListener().drawBar(this, scale, mc, buttonLocation);
+                break;
+            case TEXT:
                 main.getRenderListener().drawText(this, scale, mc, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.PICKUP_LOG) {
+                break;
+            case PICKUP_LOG:
                 main.getRenderListener().drawItemPickupLog(scale, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.DEFENCE_ICON) {
+                break;
+            case DEFENCE_ICON:
                 main.getRenderListener().drawIcon(scale, mc, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.REVENANT_PROGRESS) {
+                break;
+            case REVENANT_PROGRESS:
                 main.getRenderListener().drawRevenantIndicator(scale, mc, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.POWER_ORB_DISPLAY) {
-                main.getRenderListener().drawPowerOrbStatus(mc, scale, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.TICKER) {
+                break;
+            case DEPLOYABLE_DISPLAY:
+                main.getRenderListener().drawDeployableStatus(mc, scale, buttonLocation);
+                break;
+            case TICKER:
                 main.getRenderListener().drawScorpionFoilTicker(mc, scale, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.PROXIMITY_INDICATOR) {
-                FeatureTrackerQuest.drawTrackerLocationIndicator(mc, scale, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.TAB_EFFECT_TIMERS) {
-                main.getRenderListener().drawPotionEffectTimers(scale, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.BAIT_LIST_DISPLAY) {
+                break;
+            case BAIT_LIST_DISPLAY:
                 main.getRenderListener().drawBaitList(mc, scale, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.DUNGEONS_MAP) {
+                break;
+            case DUNGEONS_MAP:
                 DungeonMapManager.drawDungeonsMap(mc, scale, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.SLAYER_TRACKERS) {
+                break;
+            case SLAYER_TRACKERS:
                 main.getRenderListener().drawSlayerTrackers(this, mc, scale, buttonLocation);
-            } else if (guiFeatureData.getDrawType() == EnumUtils.DrawType.DRAGON_STATS_TRACKER) {
+                break;
+            case DRAGON_STATS_TRACKER:
                 main.getRenderListener().drawDragonTrackers(mc, scale, buttonLocation);
-            }
+                break;
+            case PROXIMITY_INDICATOR:
+                FeatureTrackerQuest.drawTrackerLocationIndicator(mc, scale, buttonLocation);
+                break;
         }
     }
 

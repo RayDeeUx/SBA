@@ -66,7 +66,8 @@ public class ConfigValues {
     private Map<Feature, EnumUtils.AnchorPoint> anchorPoints = new EnumMap<>(Feature.class);
     private final MutableObject<Language> language = new MutableObject<>(Language.ENGLISH);
     private final MutableObject<EnumUtils.BackpackStyle> backpackStyle = new MutableObject<>(EnumUtils.BackpackStyle.GUI);
-    private final MutableObject<EnumUtils.PowerOrbDisplayStyle> powerOrbDisplayStyle = new MutableObject<>(EnumUtils.PowerOrbDisplayStyle.COMPACT);
+    private final MutableObject<EnumUtils.PetItemStyle> petItemStyle = new MutableObject<>(EnumUtils.PetItemStyle.SHOW_ITEM);
+    private final MutableObject<EnumUtils.DeployableDisplayStyle> deployableDisplayStyle = new MutableObject<>(EnumUtils.DeployableDisplayStyle.COMPACT);
     private final MutableObject<EnumUtils.TextStyle> textStyle = new MutableObject<>(EnumUtils.TextStyle.STYLE_ONE);
     private final Map<String, Set<Integer>> profileLockedSlots = new HashMap<>();
     @Getter
@@ -95,14 +96,13 @@ public class ConfigValues {
     private final MutableFloat chromaBrightness = new MutableFloat(0.9F);
     private final MutableObject<EnchantListLayout> enchantLayout = new MutableObject<>(EnchantListLayout.NORMAL);
 
-    public ConfigValues(File settingsConfigFile) {
-        this.settingsConfigFile = settingsConfigFile;
+    public ConfigValues(File configDir) {
+        this.settingsConfigFile = new File(configDir.getAbsolutePath() + "/skyblockaddons.cfg");
     }
 
     public void loadValues() {
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("default.json");
-             InputStreamReader inputStreamReader = new InputStreamReader(Objects.requireNonNull(inputStream),
-                     StandardCharsets.UTF_8)) {
+             InputStreamReader inputStreamReader = new InputStreamReader(Objects.requireNonNull(inputStream), StandardCharsets.UTF_8)) {
             JsonObject defaultValues = SkyblockAddons.getGson().fromJson(inputStreamReader, JsonObject.class);
 
             deserializeFeatureFloatCoordsMapFromID(defaultValues, defaultCoordinates, "coordinates");
@@ -123,7 +123,7 @@ public class ConfigValues {
                 }
                 loadedConfig = fileElement.getAsJsonObject();
             } catch (JsonParseException | IllegalStateException | IOException ex) {
-                logger.error("There was an error loading the config. Resetting all settings to default.");
+                logger.error("There was an error loading the config! Resetting all settings to default.");
                 logger.catching(ex);
                 addDefaultsAndSave();
                 return;
@@ -146,7 +146,7 @@ public class ConfigValues {
                     Language configLanguage = Language.getFromPath(languageKey);
                     if (configLanguage != null) {
                         setLanguage(configLanguage); // TODO Will this crash?
-//                        language.setValue(configLanguage);
+                        //language.setValue(configLanguage);
                     }
                 }
             } catch (Exception ex) {
@@ -155,7 +155,8 @@ public class ConfigValues {
             }
 
             deserializeEnumValueFromOrdinal(backpackStyle, "backpackStyle");
-            deserializeEnumValueFromOrdinal(powerOrbDisplayStyle, "powerOrbStyle");
+            deserializeEnumValueFromOrdinal(deployableDisplayStyle, "deployableStyle");
+            deserializeEnumValueFromOrdinal(petItemStyle, "petItemStyle");
             deserializeEnumEnumMapFromIDS(anchorPoints, "anchorPoints", Feature.class, EnumUtils.AnchorPoint.class);
             deserializeEnumNumberMapFromID(guiScales, "guiScales", Feature.class, float.class);
 
@@ -207,6 +208,7 @@ public class ConfigValues {
             } else {
                 deserializeNumber(chromaSpeed, "chromaSpeed", float.class);
             }
+            deserializeNumber(healingCircleOpacity, "healingCircleOpacity", float.class);
             deserializeNumber(chromaSize, "chromaSize", float.class);
             deserializeEnumValueFromOrdinal(chromaMode, "chromaMode");
             deserializeNumber(chromaFadeWidth, "chromaFadeWidth", float.class);
@@ -313,7 +315,8 @@ public class ConfigValues {
                 return;
             }
 
-            logger.info("Saving config");
+            boolean isDevMode = Feature.DEVELOPER_MODE.isEnabled();
+            if (isDevMode) logger.info("Saving config...");
 
             try {
                 settingsConfigFile.createNewFile();
@@ -390,13 +393,15 @@ public class ConfigValues {
                 saveConfig.addProperty("textStyle", textStyle.getValue().ordinal());
                 saveConfig.addProperty("language", language.getValue().getPath());
                 saveConfig.addProperty("backpackStyle", backpackStyle.getValue().ordinal());
-                saveConfig.addProperty("powerOrbStyle", powerOrbDisplayStyle.getValue().ordinal());
+                saveConfig.addProperty("deployableStyle", deployableDisplayStyle.getValue().ordinal());
+                saveConfig.addProperty("petItemStyle", petItemStyle.getValue().ordinal());
 
                 JsonArray chromaFeaturesArray = new JsonArray();
                 for (Feature feature : chromaFeatures) {
                     chromaFeaturesArray.add(new GsonBuilder().create().toJsonTree(feature.getId()));
                 }
                 saveConfig.add("chromaFeatures", chromaFeaturesArray);
+                saveConfig.addProperty("healingCircleOpacity", healingCircleOpacity.getValue());
                 saveConfig.addProperty("chromaSpeed", chromaSpeed);
                 saveConfig.addProperty("chromaMode", chromaMode.getValue().ordinal());
                 saveConfig.addProperty("chromaSize", chromaSize);
@@ -429,11 +434,16 @@ public class ConfigValues {
             } catch (Exception ex) {
                 logger.error("An error occurred while attempting to save the config!");
                 logger.catching(ex);
+                if (Minecraft.getMinecraft().thePlayer != null) {
+                    SkyblockAddons.getInstance().getUtils().sendErrorMessage(
+                            "An error occurred while attempting to save the config! Check log for more detail."
+                    );
+                }
             }
 
             SAVE_LOCK.unlock();
 
-            logger.info("Config saved");
+            if (isDevMode) logger.info("Config saved!");
         });
     }
 
@@ -515,7 +525,6 @@ public class ConfigValues {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private <E extends Enum<?>, N extends Number> void deserializeEnumNumberMapFromID(Map<E, N> map, String path, Class<E> keyClass, Class<N> numberClass) {
         deserializeEnumNumberMapFromID(loadedConfig, map, path, keyClass, numberClass);
     }
@@ -957,12 +966,12 @@ public class ConfigValues {
         this.backpackStyle.setValue(backpackStyle);
     }
 
-    public EnumUtils.PowerOrbDisplayStyle getPowerOrbDisplayStyle() {
-        return powerOrbDisplayStyle.getValue();
+    public EnumUtils.DeployableDisplayStyle getDeployableDisplayStyle() {
+        return deployableDisplayStyle.getValue();
     }
 
-    public void setPowerOrbDisplayStyle(EnumUtils.PowerOrbDisplayStyle powerOrbDisplayStyle) {
-        this.powerOrbDisplayStyle.setValue(powerOrbDisplayStyle);
+    public void setDeployableDisplayStyle(EnumUtils.DeployableDisplayStyle deployableDisplayStyle) {
+        this.deployableDisplayStyle.setValue(deployableDisplayStyle);
     }
 
     public EnumUtils.TextStyle getTextStyle() {
@@ -1035,5 +1044,13 @@ public class ConfigValues {
 
     public void setEnchantLayout(EnchantListLayout enchantLayout) {
         this.enchantLayout.setValue(enchantLayout);
+    }
+
+    public EnumUtils.PetItemStyle getPetItemStyle() {
+        return petItemStyle.getValue();
+    }
+
+    public void setPetItemStyle(EnumUtils.PetItemStyle petItemStyle) {
+        this.petItemStyle.setValue(petItemStyle);
     }
 }

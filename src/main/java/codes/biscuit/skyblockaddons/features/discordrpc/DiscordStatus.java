@@ -4,67 +4,91 @@ import codes.biscuit.skyblockaddons.SkyblockAddons;
 import codes.biscuit.skyblockaddons.core.*;
 import codes.biscuit.skyblockaddons.gui.buttons.ButtonSelect;
 import codes.biscuit.skyblockaddons.utils.EnumUtils;
+import codes.biscuit.skyblockaddons.utils.LocationUtils;
 import codes.biscuit.skyblockaddons.utils.TextUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import org.apache.commons.lang3.mutable.MutableFloat;
 
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
  * Statuses that are shown on the Discord RPC feature
- *
- * This file has LF line endings because ForgeGradle is weird and will throw a NullPointerException if it's CRLF.
  */
+@SuppressWarnings("UnnecessaryUnicodeEscape")
 public enum DiscordStatus implements ButtonSelect.SelectItem {
 
     NONE("discordStatus.titleNone", "discordStatus.descriptionNone", () -> null),
     LOCATION("discordStatus.titleLocation", "discordStatus.descriptionLocation",
             () -> {
-                Location location = SkyblockAddons.getInstance().getUtils().getLocation();
+                SkyblockAddons main = SkyblockAddons.getInstance();
 
-                // Don't display "Your Island."
-                if (location == Location.ISLAND) {
-                    return "Private Island";
-                } else {
-                    return location.getScoreboardName();
+                Location location = main.getUtils().getLocation();
+                String prefix = main.getUtils().isOnRift() ? "\u0444 " : "\u23E3 ";
+
+                switch (location) {
+                    // Don't display "Your Island."
+                    case ISLAND:
+                        return "\u23E3 Private Island";
+                    case THE_CATACOMBS:
+                    case KUUDRAS_HOLLOW:
+                        return prefix.concat(location.getScoreboardName())
+                                .concat(main.getUtils().getDungeonFloor());
+                    case GARDEN_PLOT:
+                        return prefix.concat(location.getScoreboardName())
+                                .concat(main.getUtils().getPlotName());
+                    default:
+                        return prefix.concat(location.getScoreboardName());
                 }
             }),
 
     PURSE("discordStatus.titlePurse", "discordStatus.descriptionPurse",
             () -> {
                 double coins = SkyblockAddons.getInstance().getUtils().getPurse();
-                String coinString = " Coin";
 
-                if (coins == 1) {
-                    return TextUtils.formatDouble(coins) + coinString;
-                } else {
-                    return TextUtils.formatDouble(coins) + coinString + 's';
-                }
+                if (coins == 1)
+                    return TextUtils.formatNumber(coins) + " Coin";
+                else
+                    return TextUtils.formatNumber(coins) + " Coins";
             }),
 
     BITS("discordStatus.titleBits", "discordStatus.descriptionBits",
             ()-> {
                 double bits = SkyblockAddons.getInstance().getUtils().getBits();
-                String bitString = " Bit";
 
-                if (bits == 1) {
-                    return TextUtils.formatDouble(bits) + bitString;
-                } else {
-                    return TextUtils.formatDouble(bits) + bitString + 's';
-                }
+                if (bits == 1)
+                    return TextUtils.formatNumber(bits) + " Bit";
+                else
+                    return TextUtils.formatNumber(bits) + " Bits";
+            }),
+
+    MOTES("discordStatus.titleMotes", "discordStatus.descriptionMotes",
+            ()-> {
+                double motes = SkyblockAddons.getInstance().getUtils().getMotes();
+
+                if (motes == 1)
+                    return TextUtils.formatNumber(motes) + " Mote";
+                else
+                    return TextUtils.formatNumber(motes) + " Motes";
             }),
 
     STATS("discordStatus.titleStats", "discordStatus.descriptionStats",
             () -> {
-                float health = SkyblockAddons.getInstance().getUtils().getAttributes().get(Attribute.HEALTH).getValue();
-                float defense = SkyblockAddons.getInstance().getUtils().getAttributes().get(Attribute.DEFENCE).getValue();
-                float mana = SkyblockAddons.getInstance().getUtils().getAttributes().get(Attribute.MANA).getValue();
-//                return String.format("%d\u2764 %d\u2748 %d\u270E", health, defense, mana);
-                return String.format("%.2f H - %.2f D - %.2f M", health, defense, mana);
+                final Map<Attribute, MutableFloat> attributes = SkyblockAddons.getInstance().getUtils().getAttributes();
+
+                String health = TextUtils.formatNumber(attributes.get(Attribute.HEALTH).getValue());
+                String defense = TextUtils.formatNumber(attributes.get(Attribute.DEFENCE).getValue());
+                String mana = TextUtils.formatNumber(attributes.get(Attribute.MANA).getValue());
+
+                return String.format("%s\u2764 %s\u2748 %s\u270E", health, defense, mana);
             }),
 
     ZEALOTS("discordStatus.titleZealots", "discordStatus.descriptionZealots",
-            () -> String.format("%d Zealots killed", SkyblockAddons.getInstance().getPersistentValuesManager().getPersistentValues().getKills())),
+            () -> String.format(
+                    "%d Zealots killed"
+                    , SkyblockAddons.getInstance().getPersistentValuesManager().getPersistentValues().getKills())
+            ),
 
     ITEM("discordStatus.titleItem", "discordStatus.descriptionItem",
             () -> {
@@ -102,78 +126,23 @@ public enum DiscordStatus implements ButtonSelect.SelectItem {
                 if (location == Location.THE_END || location == Location.DRAGONS_NEST) {
                     return DiscordStatus.ZEALOTS.displayMessageSupplier.get();
                 }
+
                 EnumUtils.SlayerQuest slayerQuest = main.getUtils().getSlayerQuest();
-                if (slayerQuest != null) {
-                    if (slayerQuest == EnumUtils.SlayerQuest.REVENANT_HORROR) return DiscordStatus.valueOf("REVENANT").displayMessageSupplier.get();
-                    if (slayerQuest == EnumUtils.SlayerQuest.SVEN_PACKMASTER) return DiscordStatus.valueOf("SVEN").displayMessageSupplier.get();
-                    if (slayerQuest == EnumUtils.SlayerQuest.TARANTULA_BROODFATHER) return DiscordStatus.valueOf("TARANTULA").displayMessageSupplier.get();
+                if (slayerQuest != null && LocationUtils.isSlayerLocation(slayerQuest, location)) {
+                    return (main.getUtils().isSlayerBossAlive() ? "Slaying a " : "Doing a ")
+                            + slayerQuest.getScoreboardName() + " " + main.getUtils().getSlayerQuestLevel() + " boss.";
+                }
+
+                if (main.getUtils().isOnRift()) {
+                    return DiscordStatus.valueOf("MOTES").displayMessageSupplier.get();
                 }
 
                 if ("AUTO_STATUS".equals(main.getConfigValues().getDiscordAutoDefault().name())) { // Avoid self reference.
                     main.getConfigValues().setDiscordAutoDefault(DiscordStatus.NONE);
                 }
+
                 return main.getConfigValues().getDiscordAutoDefault().displayMessageSupplier.get();
-            }),
-
-    REVENANT("discordStatus.titleRevenants", "discordStatus.descriptionRevenants",
-            () -> {
-                SkyblockAddons main = SkyblockAddons.getInstance();
-                boolean bossAlive = main.getUtils().isSlayerBossAlive();
-
-                if (bossAlive) {
-                    return "Slaying a Revenant Horror "+main.getUtils().getSlayerQuestLevel()+" boss.";
-                } else {
-                    return "Doing a Revenant Horror "+main.getUtils().getSlayerQuestLevel()+" quest.";
-                }
-            }),
-
-    SVEN("discordStatus.titleSvens", "discordStatus.descriptionSvens",
-            () -> {
-                SkyblockAddons main = SkyblockAddons.getInstance();
-                boolean bossAlive = main.getUtils().isSlayerBossAlive();
-
-                if (bossAlive) {
-                    return "Slaying a Sven Packmaster "+main.getUtils().getSlayerQuestLevel()+" boss.";
-                } else {
-                    return "Doing a Sven Packmaster "+main.getUtils().getSlayerQuestLevel()+" quest.";
-                }
-            }),
-
-    TARANTULA("discordStatus.titleTarantula", "discordStatus.descriptionTarantula",
-            () -> {
-                SkyblockAddons main = SkyblockAddons.getInstance();
-                boolean bossAlive = main.getUtils().isSlayerBossAlive();
-
-                if (bossAlive) {
-                    return "Slaying a Tarantula Broodfather  "+main.getUtils().getSlayerQuestLevel()+" boss.";
-                } else {
-                    return "Doing a Tarantula Broodfather "+main.getUtils().getSlayerQuestLevel()+" quest.";
-                }
-            }),
-
-    VOIDGLOOM("discordStatus.titleVoidgloom", "discordStatus.descriptionVoidgloom",
-            () -> {
-                SkyblockAddons main = SkyblockAddons.getInstance();
-                boolean bossAlive = main.getUtils().isSlayerBossAlive();
-
-                if (bossAlive) {
-                    return "Slaying a Voidgloom Seraph  "+main.getUtils().getSlayerQuestLevel()+" boss.";
-                } else {
-                    return "Doing a Voidgloom Seraph "+main.getUtils().getSlayerQuestLevel()+" quest.";
-                }
-            }),
-
-    INFERNO("discordStatus.titleInferno", "discordStatus.descriptionInferno",
-            () -> {
-                SkyblockAddons main = SkyblockAddons.getInstance();
-                boolean bossAlive = main.getUtils().isSlayerBossAlive();
-
-                if (bossAlive) {
-                    return "Slaying a Inferno Demonlord  "+main.getUtils().getSlayerQuestLevel()+" boss.";
-                } else {
-                    return "Doing a Inferno Demonlord "+main.getUtils().getSlayerQuestLevel()+" quest.";
-                }
-            }),
+            })
     ;
 
     private final String title;
@@ -181,8 +150,8 @@ public enum DiscordStatus implements ButtonSelect.SelectItem {
     private final Supplier<String> displayMessageSupplier;
 
     DiscordStatus(String titleTranslationKey, String descriptionTranslationKey, Supplier<String> displayMessageSupplier) {
-        this.title = Translations.getMessage(titleTranslationKey);
-        this.description = Translations.getMessage(descriptionTranslationKey);
+        this.title = titleTranslationKey;
+        this.description = descriptionTranslationKey;
         this.displayMessageSupplier = displayMessageSupplier;
     }
 
@@ -193,11 +162,11 @@ public enum DiscordStatus implements ButtonSelect.SelectItem {
 
     @Override
     public String getName() {
-        return title;
+        return Translations.getMessage(title);
     }
 
     @Override
     public String getDescription() {
-        return description;
+        return Translations.getMessage(description);
     }
 }
