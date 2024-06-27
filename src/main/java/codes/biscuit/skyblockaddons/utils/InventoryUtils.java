@@ -6,25 +6,24 @@ import codes.biscuit.skyblockaddons.core.InventoryType;
 import codes.biscuit.skyblockaddons.features.ItemDiff;
 import codes.biscuit.skyblockaddons.features.SlayerArmorProgress;
 import codes.biscuit.skyblockaddons.features.dragontracker.DragonTracker;
-import codes.biscuit.skyblockaddons.features.slayertracker.SlayerTracker;
 import codes.biscuit.skyblockaddons.misc.scheduler.Scheduler;
+import codes.biscuit.skyblockaddons.utils.objects.Pair;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.*;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ReportedException;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -38,23 +37,12 @@ import java.util.regex.Pattern;
  * Utility methods related to player inventories
  */
 public class InventoryUtils {
+    private static final Logger logger = SkyblockAddons.getLogger();
 
-    /** Slot index the SkyBlock menu is at. */
-    private static final int SKYBLOCK_MENU_SLOT = 8;
-
-    /** Display name of the Skeleton Helmet. */
-    private static final String SKELETON_HELMET_ID = "SKELETON_HELMET";
-    private static final String TOXIC_ARROW_POISON_ID = "TOXIC_ARROW_POISON";
-
-    public static final String MADDOX_BATPHONE_ID = "AATROX_BATPHONE";
-    public static final String JUNGLE_AXE_ID = "JUNGLE_AXE";
-    public static final String TREECAPITATOR_ID = "TREECAPITATOR_AXE";
-    public static final String CHICKEN_HEAD_ID = "CHICKEN_HEAD";
-    public static final HashSet<String> BAT_PERSON_SET_IDS = new HashSet<>(Arrays.asList("BAT_PERSON_BOOTS", "BAT_PERSON_LEGGINGS", "BAT_PERSON_CHESTPLATE", "BAT_PERSON_HELMET"));
-    public static final String GRAPPLING_HOOK_ID = "GRAPPLING_HOOK";
-
+    public static final HashSet<String> BAT_PERSON_SET_IDS = new HashSet<>(
+            Arrays.asList("BAT_PERSON_BOOTS", "BAT_PERSON_LEGGINGS", "BAT_PERSON_CHESTPLATE", "BAT_PERSON_HELMET")
+    );
     private static final Pattern REVENANT_UPGRADE_PATTERN = Pattern.compile("Next Upgrade: \\+([0-9]+❈) \\(([0-9,]+)/([0-9,]+)\\)");
-
     private List<ItemStack> previousInventory;
     private final Multimap<String, ItemDiff> itemPickupLog = ArrayListMultimap.create();
 
@@ -71,7 +59,16 @@ public class InventoryUtils {
     private boolean usingToxicArrowPoison;
 
     @Getter
+    private boolean usingTwilightArrowPoison;
+
+    @Getter
     private final SlayerArmorProgress[] slayerArmorProgresses = new SlayerArmorProgress[4];
+
+    @Getter
+    private ItemStack emptyThunderBottle = null;
+
+    @Getter
+    private boolean haveFullThunderBottle;
 
     @Getter
     private InventoryType inventoryType;
@@ -116,7 +113,7 @@ public class InventoryUtils {
         if (previousInventory != null) {
 
             for(int i = 0; i < newInventory.size(); i++) {
-                if (i == SKYBLOCK_MENU_SLOT) { // Skip the SkyBlock Menu slot altogether (which includes the Quiver Arrow now)
+                if (i == 8) { // Skip the SkyBlock Menu slot altogether (which includes the Quiver Arrow now)
                     continue;
                 }
 
@@ -199,10 +196,6 @@ public class InventoryUtils {
 
             if (main.getConfigValues().isEnabled(Feature.DRAGON_STATS_TRACKER)) {
                 DragonTracker.getInstance().checkInventoryDifferenceForDrops(inventoryDifference);
-            }
-
-            if (SlayerTracker.getInstance().isTrackerEnabled()) {
-                SlayerTracker.getInstance().checkInventoryDifferenceForDrops(inventoryDifference);
             }
 
             // Add changes to already logged changes of the same item, so it will increase/decrease the amount
@@ -303,7 +296,7 @@ public class InventoryUtils {
     public void checkIfWearingSkeletonHelmet(EntityPlayerSP p) {
         if (main.getConfigValues().isEnabled(Feature.SKELETON_BAR)) {
             ItemStack item = p.getEquipmentInSlot(4);
-            if (item != null && SKELETON_HELMET_ID.equals(ItemUtils.getSkyblockItemID(item))) {
+            if (item != null && "SKELETON_HELMET".equals(ItemUtils.getSkyblockItemID(item))) {
                 wearingSkeletonHelmet = true;
                 return;
             }
@@ -316,15 +309,24 @@ public class InventoryUtils {
      *
      * @param p the player to check
      */
-    public void checkIfUsingToxicArrowPoison(EntityPlayerSP p) {
-        if (main.getConfigValues().isEnabled(Feature.TURN_BOW_GREEN_WHEN_USING_TOXIC_ARROW_POISON)) {
+    public void checkIfUsingArrowPoison(EntityPlayerSP p) {
+        if (main.getConfigValues().isEnabled(Feature.TURN_BOW_COLOR_WHEN_USING_ARROW_POISON)) {
             for (ItemStack item : p.inventory.mainInventory) {
-                if (item != null && TOXIC_ARROW_POISON_ID.equals(ItemUtils.getSkyblockItemID(item))) {
-                    this.usingToxicArrowPoison = true;
-                    return;
+                if (item != null) {
+                    String itemID = ItemUtils.getSkyblockItemID(item);
+                    if ("TOXIC_ARROW_POISON".equals(itemID)) {
+                        this.usingToxicArrowPoison = true;
+                        this.usingTwilightArrowPoison = false;
+                        return;
+                    } else if ("TWILIGHT_ARROW_POISON".equals(itemID)) {
+                        this.usingToxicArrowPoison = false;
+                        this.usingTwilightArrowPoison = true;
+                        return;
+                    }
                 }
             }
             this.usingToxicArrowPoison = false;
+            this.usingTwilightArrowPoison = false;
         }
     }
 
@@ -337,6 +339,35 @@ public class InventoryUtils {
         else if (container instanceof ContainerFurnace) return 6;
         else if (container instanceof ContainerBeacon) return 8;
         else return 0;
+    }
+
+    /**
+     * Checks if the player has the Thunder Bottle and updates {@link #emptyThunderBottle} and {@link #haveFullThunderBottle} accordingly
+     * @param p EntityPlayerSP
+     */
+    public void checkIfThunderBottle(EntityPlayerSP p) {
+        if (main.getConfigValues().isEnabled(Feature.THUNDER_BOTTLE_DISPLAY)) {
+            if (emptyThunderBottle != null && !ArrayUtils.contains(p.inventory.mainInventory, emptyThunderBottle))
+                emptyThunderBottle = null;
+
+            // If there is multiple empty bottle, Hypixel applies "first-come, first-served" according to inv index
+            boolean foundFullThunderBottle = false;
+            for (ItemStack item : p.inventory.mainInventory) {
+                if (item != null) {
+                    String itemID = ItemUtils.getSkyblockItemID(item);
+                    if ("THUNDER_IN_A_BOTTLE_EMPTY".equals(itemID)) {
+                        emptyThunderBottle = item;
+                        return;
+                    } else if (emptyThunderBottle == null && "THUNDER_IN_A_BOTTLE".equals(itemID)) {
+                        haveFullThunderBottle = true;
+                        foundFullThunderBottle = true;
+                    }
+                }
+            }
+            emptyThunderBottle = null;
+            if (!foundFullThunderBottle)
+                haveFullThunderBottle = false;
+        }
     }
 
     /**
@@ -429,7 +460,7 @@ public class InventoryUtils {
         if (inventory.getDisplayName() == null) {
             return inventoryType = null;
         }
-        String chestName = TextUtils.stripColor(inventory.getDisplayName().getUnformattedText());
+        String chestName = TextUtils.stripColor(inventory.getDisplayName().getUnformattedText()).trim();
 
         // Initialize inventory to null and get the open chest name
         inventoryType = null;
@@ -439,6 +470,18 @@ public class InventoryUtils {
             Matcher m = inventoryTypeItr.getInventoryPattern().matcher(chestName);
             if (m.matches()) {
                 if (m.groupCount() > 0) {
+                    if (inventoryTypeItr.equals(InventoryType.MAYOR)) {
+                        try {
+                            String mayorName = m.group("mayor");
+                            if (!mayorName.startsWith(main.getUtils().getMayor())) {
+                                main.getUtils().setMayor(mayorName);
+                                logger.info("Mayor changed to {}", mayorName);
+                            }
+                        } catch (IllegalStateException | IllegalArgumentException e) {
+                            logger.warn("Could not detect mayor in Mayor Menu");
+                        } break;
+                    }
+
                     try {
                         inventoryPageNum = Integer.parseInt(m.group("page"));
                     } catch (Exception e) {

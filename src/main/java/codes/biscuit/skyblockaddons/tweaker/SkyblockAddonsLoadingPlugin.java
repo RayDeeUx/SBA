@@ -1,18 +1,17 @@
 package codes.biscuit.skyblockaddons.tweaker;
 
+import codes.biscuit.skyblockaddons.asm.SkyblockAddonsASMTransformer;
 import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 
-import java.util.List;
 import java.util.Map;
 
 @IFMLLoadingPlugin.MCVersion(ForgeVersion.mcVersion)
 public class SkyblockAddonsLoadingPlugin implements IFMLLoadingPlugin {
-    static List<Object> coremodList;
 
     @Override
     public String[] getASMTransformerClass() {
-        return new String[]{SkyblockAddonsTransformer.class.getName()};
+        return new String[]{SkyblockAddonsASMTransformer.class.getName()};
     }
 
     @Override
@@ -22,13 +21,11 @@ public class SkyblockAddonsLoadingPlugin implements IFMLLoadingPlugin {
 
     @Override
     public String getSetupClass() {
-        return SkyblockAddonsDuplicateChecker.class.getName();
+        return null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void injectData(Map<String, Object> data) {
-        coremodList = (List<Object>) data.get("coremodList");
+    public void injectData(Map<String, Object> map) {
     }
 
     @Override

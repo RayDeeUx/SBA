@@ -4,6 +4,7 @@ import codes.biscuit.skyblockaddons.SkyblockAddons;
 import codes.biscuit.skyblockaddons.core.Feature;
 import codes.biscuit.skyblockaddons.misc.scheduler.Scheduler;
 import codes.biscuit.skyblockaddons.utils.ItemUtils;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.init.Blocks;
@@ -21,6 +22,8 @@ import java.util.TimeZone;
  */
 public class FetchurManager {
 
+    @Getter
+    private static final FetchurManager instance = new FetchurManager();
     private static final long MILLISECONDS_IN_A_DAY = 24 * 60 * 60 * 1000;
     // Hypixel timezone
     // Currently using new york timezone, gotta check november 7th to see if this still works
@@ -48,16 +51,13 @@ public class FetchurManager {
             new FetchurItem(new ItemStack(Blocks.tnt, 1), "Superboom TNT"),
             new FetchurItem(new ItemStack(Blocks.pumpkin, 1), "Pumpkin"),
             new FetchurItem(new ItemStack(Items.flint_and_steel, 1), "Flint and Steel"),
-            new FetchurItem(new ItemStack(Blocks.quartz_ore, 50), "Nether Quartz Ore"),
+            new FetchurItem(new ItemStack(Items.emerald, 50), "Emerald"),
             //new FetchurItem(new ItemStack(Items.ender_pearl, 16), "Ender Pearl"),
-            new FetchurItem(new ItemStack(Blocks.wool, 50, 14), "Red Wool")};
-
-    @Getter
-    private static final FetchurManager instance = new FetchurManager();
+            new FetchurItem(new ItemStack(Blocks.wool, 50, 14), "Red Wool")
+    };
 
     // Used for storage, essential for Fetchur Warner
-    @Getter
-    @Setter
+    @Getter @Setter
     private FetchurItem currentItemSaved = null;
 
     /**
@@ -81,7 +81,7 @@ public class FetchurManager {
     public boolean hasFetchedToday() {
         long lastTimeFetched = SkyblockAddons.getInstance().getPersistentValuesManager().getPersistentValues().getLastTimeFetchur();
         long currTime = System.currentTimeMillis();
-        // Return true iff the days of the month from last submission and current time match
+        // Return true if the days of the month from last submission and current time match
         return currTime - lastTimeFetched < MILLISECONDS_IN_A_DAY && getFetchurDayOfMonth(lastTimeFetched) == getFetchurDayOfMonth(currTime);
     }
 
@@ -119,8 +119,7 @@ public class FetchurManager {
      */
     public void saveLastTimeFetched() {
         SkyblockAddons main = SkyblockAddons.getInstance();
-        main.getPersistentValuesManager().getPersistentValues().setLastTimeFetchur(System.currentTimeMillis());
-        main.getPersistentValuesManager().saveValues();
+        main.getPersistentValuesManager().setLastTimeFetchur(System.currentTimeMillis());
     }
 
     /**
@@ -136,16 +135,11 @@ public class FetchurManager {
      * A class representing the item fetchur wants
      * containing the item instance and the text format of the item
      */
+    @Getter @AllArgsConstructor
     public static class FetchurItem {
-        @Getter
         private final ItemStack itemStack;
-        @Getter
         private final String itemText;
 
-        public FetchurItem(ItemStack itemStack, String itemText) {
-            this.itemStack = itemStack;
-            this.itemText = itemText;
-        }
         @Override
         public boolean equals(Object anotherObject) {
             if (!(anotherObject instanceof FetchurItem))

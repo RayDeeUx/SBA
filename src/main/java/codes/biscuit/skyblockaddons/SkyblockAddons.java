@@ -1,11 +1,15 @@
 package codes.biscuit.skyblockaddons;
 
-import codes.biscuit.skyblockaddons.asm.hooks.FontRendererHook;
+import codes.biscuit.skyblockaddons.config.PetCacheManager;
+import codes.biscuit.skyblockaddons.core.Rarity;
 import codes.biscuit.skyblockaddons.commands.SkyblockAddonsCommand;
 import codes.biscuit.skyblockaddons.config.ConfigValues;
 import codes.biscuit.skyblockaddons.config.PersistentValuesManager;
 import codes.biscuit.skyblockaddons.core.Feature;
-import codes.biscuit.skyblockaddons.core.OnlineData;
+import codes.biscuit.skyblockaddons.mixins.hooks.FontRendererHook;
+import codes.biscuit.skyblockaddons.utils.gson.RarityAdapter;
+import codes.biscuit.skyblockaddons.utils.gson.UuidAdapter;
+import codes.biscuit.skyblockaddons.utils.pojo.OnlineData;
 import codes.biscuit.skyblockaddons.core.Translations;
 import codes.biscuit.skyblockaddons.core.dungeons.DungeonManager;
 import codes.biscuit.skyblockaddons.features.EntityOutlines.EntityOutlineRenderer;
@@ -22,10 +26,7 @@ import codes.biscuit.skyblockaddons.misc.Updater;
 import codes.biscuit.skyblockaddons.misc.scheduler.NewScheduler;
 import codes.biscuit.skyblockaddons.misc.scheduler.Scheduler;
 import codes.biscuit.skyblockaddons.newgui.GuiManager;
-import codes.biscuit.skyblockaddons.utils.EnumUtils;
-import codes.biscuit.skyblockaddons.utils.InventoryUtils;
-import codes.biscuit.skyblockaddons.utils.SkyblockAddonsMessageFactory;
-import codes.biscuit.skyblockaddons.utils.Utils;
+import codes.biscuit.skyblockaddons.utils.*;
 import codes.biscuit.skyblockaddons.utils.data.DataUtils;
 import codes.biscuit.skyblockaddons.utils.gson.GsonInitializableTypeAdapter;
 import codes.biscuit.skyblockaddons.utils.gson.PatternAdapter;
@@ -58,11 +59,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 @Getter
-@Mod(modid = "skyblockaddons", name = "SkyblockAddons", version = "@VERSION@", clientSideOnly = true, acceptedMinecraftVersions = "@MOD_ACCEPTED@")
+@Mod(modid = "sbaunofficial",
+        name = "SkyblockAddons Unofficial",
+        version = "@VERSION@",
+        clientSideOnly = true,
+        acceptedMinecraftVersions = "@MOD_ACCEPTED@",
+        guiFactory = "codes.biscuit.skyblockaddons.gui.SBAModGuiFactory")
 public class SkyblockAddons {
 
-    public static final String MOD_ID = "skyblockaddons";
+    public static final String MOD_ID = "sbaunofficial";
     public static final String MOD_NAME = "SkyblockAddons";
+    /**
+     * If workingOnCi x.x.x.+x else x.x.x
+     * @see "Gradle Build Script"
+     */
     public static String VERSION = "@VERSION@";
     /**
      * This is set by the CI. If the build isn't done on CI, this will be an empty string.
@@ -70,7 +80,7 @@ public class SkyblockAddons {
     public static final String BUILD_NUMBER = "@BUILD_NUMBER@";
 
     @Getter private static SkyblockAddons instance;
-    @Getter private static boolean fullyInitialized;
+    @Getter private boolean fullyInitialized = false;
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static final Gson GSON = new GsonBuilder()
@@ -81,6 +91,8 @@ public class SkyblockAddons {
             })
             .registerTypeAdapterFactory(new GsonInitializableTypeAdapter())
             .registerTypeAdapter(Pattern.class, new PatternAdapter())
+            .registerTypeAdapter(Rarity.class, new RarityAdapter())
+            .registerTypeAdapter(UUID.class, new UuidAdapter())
             .create();
 
     private static final Logger LOGGER = LogManager.getLogger(new SkyblockAddonsMessageFactory(MOD_NAME));
@@ -90,6 +102,7 @@ public class SkyblockAddons {
 
     private ConfigValues configValues;
     private PersistentValuesManager persistentValuesManager;
+    private PetCacheManager petCacheManager;
     private final PlayerListener playerListener;
     private final GuiScreenListener guiScreenListener;
     private final RenderListener renderListener;
@@ -109,8 +122,6 @@ public class SkyblockAddons {
     private boolean usingLabymod;
     private boolean usingOofModv1;
     private boolean usingPatcher;
-    @Setter
-    private boolean devMode;
     private final List<SkyblockKeyBinding> keyBindings = new LinkedList<>();
 
     @Getter
@@ -136,11 +147,13 @@ public class SkyblockAddons {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent e) {
-        configValues = new ConfigValues(e.getSuggestedConfigurationFile());
+        configValues = new ConfigValues(e.getModConfigurationDirectory());
         persistentValuesManager = new PersistentValuesManager(e.getModConfigurationDirectory());
+        petCacheManager = new PetCacheManager(e.getModConfigurationDirectory());
         configValues.loadValues();
         DataUtils.readLocalAndFetchOnline();
         persistentValuesManager.loadValues();
+        petCacheManager.loadValues();
     }
 
     @Mod.EventHandler
@@ -166,11 +179,12 @@ public class SkyblockAddons {
         // Macs do not have a right control key.
         int developerModeKey = Minecraft.isRunningOnMac ? Keyboard.KEY_LMENU : Keyboard.KEY_RCONTROL;
 
-        Collections.addAll(keyBindings, new SkyblockKeyBinding("open_settings", Keyboard.KEY_NONE, "settings.settings"),
+        Collections.addAll(keyBindings,
+                new SkyblockKeyBinding("open_settings", Keyboard.KEY_NONE, "settings.settings"),
                 new SkyblockKeyBinding("edit_gui", Keyboard.KEY_NONE, "settings.editLocations"),
                 new SkyblockKeyBinding("lock_slot", Keyboard.KEY_L, "settings.lockSlot"),
                 new SkyblockKeyBinding("freeze_backpack", Keyboard.KEY_F, "settings.freezeBackpackPreview"),
-                new SkyblockKeyBinding("increase_dungeon_map_zoom", Keyboard.KEY_EQUALS, "keyBindings.increaseDungeonMapZoom"),
+                new SkyblockKeyBinding("increase_dungeon_map_zoom", Keyboard.KEY_ADD, "keyBindings.increaseDungeonMapZoom"),
                 new SkyblockKeyBinding("decrease_dungeon_map_zoom", Keyboard.KEY_SUBTRACT, "keyBindings.decreaseDungeonMapZoom"),
                 new SkyblockKeyBinding("copy_NBT", developerModeKey, "keyBindings.developerCopyNBT"));
         registerKeyBindings(keyBindings);
@@ -191,6 +205,10 @@ public class SkyblockAddons {
         usingLabymod = utils.isModLoaded("labymod");
         usingOofModv1 = utils.isModLoaded("refractionoof", "1.0");
         usingPatcher = utils.isModLoaded("patcher");
+
+        if (!this.configValues.isEnabled(Feature.NUMBER_SEPARATORS)) {
+            TextUtils.NUMBER_FORMAT.setGroupingUsed(false);
+        }
     }
 
     @Mod.EventHandler
@@ -280,21 +298,6 @@ public class SkyblockAddons {
         String simpleClassName = fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
 
         return LogManager.getLogger(fullClassName, new SkyblockAddonsMessageFactory(simpleClassName));
-    }
-
-    /**
-     * Returns the complete SemVer version with pre-release and build number if it is defined.
-     *
-     * @return the complete SemVer version string
-     */
-    public static String getVersionFull() {
-        // Set by CI, is not actually constant
-        //noinspection ConstantConditions
-        if (!SkyblockAddons.BUILD_NUMBER.isEmpty()) {
-            return SkyblockAddons.VERSION + '+' + SkyblockAddons.BUILD_NUMBER;
-        } else {
-            return SkyblockAddons.VERSION;
-        }
     }
 
     public static void runAsync(Runnable runnable) {

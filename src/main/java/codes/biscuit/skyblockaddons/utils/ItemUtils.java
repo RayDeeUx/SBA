@@ -1,13 +1,13 @@
 package codes.biscuit.skyblockaddons.utils;
 
 import codes.biscuit.skyblockaddons.SkyblockAddons;
-import codes.biscuit.skyblockaddons.asm.utils.ReturnValue;
-import codes.biscuit.skyblockaddons.core.ItemRarity;
+import codes.biscuit.skyblockaddons.core.Rarity;
 import codes.biscuit.skyblockaddons.core.ItemType;
 import codes.biscuit.skyblockaddons.features.backpacks.BackpackColor;
+import codes.biscuit.skyblockaddons.utils.objects.ReturnValue;
+import codes.biscuit.skyblockaddons.utils.pojo.PetInfo;
 import codes.biscuit.skyblockaddons.utils.skyblockdata.CompactorItem;
 import codes.biscuit.skyblockaddons.utils.skyblockdata.ContainerData;
-import codes.biscuit.skyblockaddons.utils.skyblockdata.PetInfo;
 import codes.biscuit.skyblockaddons.utils.skyblockdata.Rune;
 import lombok.Setter;
 import net.minecraft.enchantment.Enchantment;
@@ -17,6 +17,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemPickaxe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
+import net.minecraftforge.common.util.Constants;
 import org.apache.commons.lang3.text.WordUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -40,11 +41,10 @@ public class ItemUtils {
     public static final int NBT_LIST = 9;
     /**
      * This expression matches the line with a Skyblock item's rarity and item type that's at the end of its lore.
+     * <p><i>Recombobulated Special items have exception for rarity pattern.<i/></p>
      */
-    private static final Pattern ITEM_TYPE_AND_RARITY_PATTERN = Pattern.compile("§l(?<rarity>[A-Z]+) ?(?<type>[A-Z ]+)?(?:§[0-9a-f]§l§ka)?$");
-    @SuppressWarnings({"FieldMayBeFinal", "MismatchedQueryAndUpdateOfCollection"})
+    private static final Pattern ITEM_TYPE_AND_RARITY_PATTERN = Pattern.compile("§l(?<rarity>[A-Z]+(?: SPECIAL)?) ?(?<type>[A-Z ]+)?(?:§[0-9a-f]§l§ka)?$");
     @Setter private static Map<String, CompactorItem> compactorItems;
-    @SuppressWarnings({"FieldMayBeFinal", "MismatchedQueryAndUpdateOfCollection"})
     @Setter private static Map<String, ContainerData> containers;
 
 
@@ -55,7 +55,7 @@ public class ItemUtils {
      * @param item the Skyblock item to check, can't be {@code null}
      * @return the rarity of the item if a valid rarity is found, or {@code null} if item is {@code null} or no valid rarity is found
      */
-    public static ItemRarity getRarity(ItemStack item) {
+    public static Rarity getRarity(ItemStack item) {
         if (item == null) {
             throw new NullPointerException("The item cannot be null!");
         }
@@ -172,6 +172,7 @@ public class ItemUtils {
 
                     reforge = reforge.replace("_sword", ""); //fixes reforges like "Odd_sword"
                     reforge = reforge.replace("_bow", "");
+                    reforge = reforge.replace("Warped", "Hyper"); // exception
 
                     return reforge;
                 }
@@ -243,7 +244,7 @@ public class ItemUtils {
         }
 
         String itemId = extraAttributes.getString("id");
-        if (itemId.equals("")) {
+        if (itemId.isEmpty()) {
             return null;
         }
 
@@ -264,7 +265,8 @@ public class ItemUtils {
 
     /**
      * Checks if the given {@code ItemStack} is a builders wand
-     * See {@link codes.biscuit.skyblockaddons.asm.hooks.PlayerControllerMPHook#onWindowClick(int, int, int, EntityPlayer, ReturnValue)} for a commented-out implementation (may come back in the future).
+     * See {@link codes.biscuit.skyblockaddons.mixins.hooks.PlayerControllerMPHook#onWindowClick(int, int, int, EntityPlayer, ReturnValue)}
+     * for a commented-out implementation (may come back in the future).
      *
      * @param stack the {@code ItemStack} to check
      * @return {@code true} if {@code stack} is a backpack, {@code false} otherwise
@@ -474,33 +476,7 @@ public class ItemUtils {
     }
 
     public static ItemStack createSkullItemStack(String name, String skyblockID, String skullID, String textureURL) {
-        ItemStack stack = new ItemStack(Items.skull, 1, 3);
-
-        NBTTagCompound texture = new NBTTagCompound();
-        texture.setString("Value", TextUtils.encodeSkinTextureURL(textureURL));
-
-        NBTTagList textures = new NBTTagList();
-        textures.appendTag(texture);
-
-        NBTTagCompound properties = new NBTTagCompound();
-        properties.setTag("textures", textures);
-
-        NBTTagCompound skullOwner = new NBTTagCompound();
-        skullOwner.setTag("Properties", properties);
-
-        skullOwner.setString("Id", skullID);
-
-        stack.setTagInfo("SkullOwner", skullOwner);
-
-        if (name != null) {
-            stack.setStackDisplayName(name);
-        }
-
-        if (skyblockID != null) {
-            setItemStackSkyblockID(stack, skyblockID);
-        }
-
-        return stack;
+        return createSkullItemStack(name, Collections.emptyList(), skyblockID, skullID, textureURL);
     }
 
     public static ItemStack createSkullItemStack(String name, List<String> lore, String skyblockID, String skullID, String textureURL) {
@@ -558,6 +534,22 @@ public class ItemUtils {
         return null;
     }
 
+    /**
+     * Given a skull ItemStack, returns the texture, or null if it doesn't exist.
+     */
+    public static String getSkullTexture(ItemStack skull) {
+        if (skull == null || !skull.hasTagCompound()) {
+            return null;
+        }
+
+        NBTTagCompound nbt = skull.getTagCompound();
+        if (nbt.hasKey("SkullOwner", 10)) {
+            return nbt.getCompoundTag("SkullOwner").getCompoundTag("Properties")
+                    .getTagList("textures", Constants.NBT.TAG_COMPOUND).getCompoundTagAt(0).getString("Value");
+        }
+        return null;
+    }
+
     public static NBTTagByteArray getCompressedNBT(ItemStack[] items) {
         if (items == null) {
             return null;
@@ -584,13 +576,26 @@ public class ItemUtils {
     }
 
     /**
+     * Returns the integer thunder charge amount of Thunder Bottle
+     * @param bottle Empty Thunder Bottle ItemStack
+     * @return thunder charge amount
+     */
+    public static int getThunderCharge(ItemStack bottle) {
+        NBTTagCompound ea = getExtraAttributes(bottle);
+        if (ea != null && ea.hasKey("thunder_charge")) {
+            return ea.getInteger("thunder_charge");
+        }
+        return 0;
+    }
+
+    /**
      * Returns the rarity of a Skyblock item given its lore. This method takes the item's lore as a string list as input.
      * This method is split up from the method that takes the {@code ItemStack} instance for easier unit testing.
      *
      * @param lore the {@code List<String>} containing the item's lore
      * @return the rarity of the item if a valid rarity is found, or {@code null} if item is {@code null} or no valid rarity is found
      */
-    private static ItemRarity getRarity(List<String> lore) {
+    private static Rarity getRarity(List<String> lore) {
         // Start from the end since the rarity is usually the last line or one of the last.
         for (int i = lore.size() - 1; i >= 0 ; i--) {
             String currentLine = lore.get(i);
@@ -599,7 +604,7 @@ public class ItemUtils {
             if (rarityMatcher.find()) {
                 String rarity = rarityMatcher.group("rarity");
 
-                for (ItemRarity itemRarity : ItemRarity.values()) {
+                for (Rarity itemRarity : Rarity.values()) {
                     // Use a "startsWith" check here because "VERY SPECIAL" has two words and only "VERY" is matched.
                     if (itemRarity.getLoreName().startsWith(rarity)) {
                         return itemRarity;
@@ -629,7 +634,7 @@ public class ItemUtils {
 
                 if (type != null) {
                     for (ItemType itemType : ItemType.values()) {
-                        if (itemType.getLoreName().startsWith(type)) {
+                        if (itemType.getLoreName().startsWith(type.trim())) {
                             return itemType;
                         }
                     }

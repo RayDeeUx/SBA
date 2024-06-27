@@ -1,18 +1,21 @@
 package codes.biscuit.skyblockaddons.listeners;
 
 import codes.biscuit.skyblockaddons.SkyblockAddons;
-import codes.biscuit.skyblockaddons.asm.hooks.GuiChestHook;
 import codes.biscuit.skyblockaddons.core.Feature;
 import codes.biscuit.skyblockaddons.core.InventoryType;
 import codes.biscuit.skyblockaddons.core.Translations;
 import codes.biscuit.skyblockaddons.events.InventoryLoadingDoneEvent;
+import codes.biscuit.skyblockaddons.features.PetManager;
 import codes.biscuit.skyblockaddons.features.backpacks.ContainerPreviewManager;
 import codes.biscuit.skyblockaddons.features.dungeonmap.DungeonMapManager;
 import codes.biscuit.skyblockaddons.gui.LocationEditGui;
 import codes.biscuit.skyblockaddons.misc.scheduler.ScheduledTask;
 import codes.biscuit.skyblockaddons.misc.scheduler.SkyblockRunnable;
+import codes.biscuit.skyblockaddons.mixins.hooks.GuiChestHook;
+import codes.biscuit.skyblockaddons.mixins.hooks.GuiContainerHook;
 import codes.biscuit.skyblockaddons.utils.ColorCode;
 import codes.biscuit.skyblockaddons.utils.DevUtils;
+import codes.biscuit.skyblockaddons.utils.objects.Pair;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -27,6 +30,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
+import java.util.HashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -44,12 +48,10 @@ public class GuiScreenListener {
     private ScheduledTask inventoryChangeTimeCheckTask;
 
     /** Time in milliseconds of the last time a {@code GuiContainer} was closed */
-    @Getter
-    private long lastContainerCloseMs = -1;
+    @Getter private long lastContainerCloseMs = -1;
 
     /** Time in milliseconds of the last time a backpack was opened, used by {@link Feature#BACKPACK_OPENING_SOUND}. */
-    @Getter
-    private long lastBackpackOpenMs = -1;
+    @Getter private long lastBackpackOpenMs = -1;
 
     /** Time in milliseconds of the last time an item in the currently open {@code GuiContainer} changed */
     private long lastInventoryChangeMs = -1;
@@ -63,7 +65,6 @@ public class GuiScreenListener {
         GuiScreen guiScreen = e.gui;
 
         if (guiScreen instanceof GuiChest) {
-            Minecraft mc = Minecraft.getMinecraft();
             GuiChest guiChest = (GuiChest) guiScreen;
             InventoryType inventoryType = SkyblockAddons.getInstance().getInventoryUtils().updateInventoryType(guiChest);
             InventoryBasic chestInventory = (InventoryBasic) guiChest.lowerChestInventory;
@@ -75,9 +76,9 @@ public class GuiScreenListener {
                     lastBackpackOpenMs = System.currentTimeMillis();
 
                     if (ThreadLocalRandom.current().nextInt(0, 2) == 0) {
-                        mc.thePlayer.playSound("mob.horse.armor", 0.5F, 1);
+                        Minecraft.getMinecraft().thePlayer.playSound("mob.horse.armor", 0.5F, 1);
                     } else {
-                        mc.thePlayer.playSound("mob.horse.leather", 0.5F, 1);
+                        Minecraft.getMinecraft().thePlayer.playSound("mob.horse.leather", 0.5F, 1);
                     }
                 }
             }
@@ -112,6 +113,7 @@ public class GuiScreenListener {
 
             ContainerPreviewManager.onContainerClose();
             GuiChestHook.onGuiClosed();
+            setCurrentPet((GuiChest) oldGuiScreen);
         }
     }
 
@@ -133,7 +135,11 @@ public class GuiScreenListener {
                 Slot currentSlot = ((GuiContainer) currentScreen).getSlotUnderMouse();
 
                 if (currentSlot != null && currentSlot.getHasStack()) {
-                    DevUtils.copyNBTTagToClipboard(currentSlot.getStack().serializeNBT(), ColorCode.GREEN + "Item data was copied to clipboard!");
+                    DevUtils.setCopyMode(DevUtils.CopyMode.ITEM);
+                    DevUtils.copyNBTTagToClipboard(
+                            currentSlot.getStack().serializeNBT(),
+                            ColorCode.GREEN + "Item data was copied to clipboard!"
+                    );
                 }
             }
         }
@@ -151,8 +157,10 @@ public class GuiScreenListener {
 
     @SubscribeEvent
     public void onInventoryLoadingDone(InventoryLoadingDoneEvent e) {
-        removeInventoryChangeListener(listenedInventory);
-        lastInventoryChangeMs = -1;
+        if (listenedInventory != null) {
+            removeInventoryChangeListener(listenedInventory);
+            lastInventoryChangeMs = -1;
+        }
     }
 
     @SubscribeEvent
@@ -276,6 +284,30 @@ public class GuiScreenListener {
             inventoryChangeListener = null;
             listenedInventory = null;
             inventoryChangeTimeCheckTask = null;
+        }
+    }
+
+    /**
+     * Set current pet to last clicked pet while pets menu closing
+     * @author Fix3dll
+     */
+    private void setCurrentPet(GuiChest guiChest) {
+        if (!guiChest.lowerChestInventory.getDisplayName().getUnformattedText().startsWith("Pets")) return;
+
+        HashMap<Integer, PetManager.Pet> petMap = main.getPetCacheManager().getPetCache().getPetMap();
+        Pair<Integer, Integer> clickedButton = GuiContainerHook.getLastClickedButtonOnPetsMenu();
+        if (clickedButton == null) return;
+
+        int index = clickedButton.getKey() + 45 * (main.getInventoryUtils().getInventoryPageNum() - 1);
+        if (petMap.containsKey(index)) {
+            PetManager.Pet pet = petMap.get(index);
+            if (pet.getPetInfo().isActive()) {
+                main.getPetCacheManager().setCurrentPet(null);
+            } else if (clickedButton.getValue() != 1 /*right click*/) {
+                main.getPetCacheManager().setCurrentPet(pet);
+            }
+            // lastClickedButton has completed its task, time to clean up
+            GuiContainerHook.setLastClickedButtonOnPetsMenu(null);
         }
     }
 }

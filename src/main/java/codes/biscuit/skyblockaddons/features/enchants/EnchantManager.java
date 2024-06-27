@@ -91,12 +91,12 @@ public class EnchantManager {
             String u = loreList.get(i);
             String s = TextUtils.stripColor(u);
             if (startEnchant == -1) {
-                if (containsEnchantment(enchantNBT, s)) {
+                if (containsEnchantment(extraAttributes, s)) {
                     startEnchant = i;
                 }
             }
             // Assume enchants end with an empty line "break"
-            else if (s.trim().length() == 0 && endEnchant == -1) {
+            else if (s.trim().isEmpty() && endEnchant == -1) {
                 endEnchant = i - 1;
             }
             // Get max tooltip size, disregarding the enchants section
@@ -159,7 +159,7 @@ public class EnchantManager {
         }
 
 
-        if (orderedEnchants.size() == 0) {
+        if (orderedEnchants.isEmpty()) {
             loreCache.updateAfter(loreList);
             return;
         }
@@ -200,58 +200,34 @@ public class EnchantManager {
         // Print 2 enchants per line, separated by a comma, with no enchant lore (typical hypixel behavior)
         else if (layout == EnchantListLayout.NORMAL && !hasLore) {
             insertEnchants = new ArrayList<>();
+
+            String comma;
             if (config.isEnabled(Feature.ENCHANTMENTS_HIGHLIGHT)) {
-                // Get format for comma
-                String comma = SkyblockAddons.getInstance().getConfigValues().getRestrictedColor(Feature.ENCHANTMENT_COMMA_COLOR) + COMMA;
-
-                // Process each line of enchants
-                int i = 0;
-                StringBuilder builder = new StringBuilder(maxTooltipWidth);
-                for (FormattedEnchant enchant : orderedEnchants) {
-                    // Add the enchant
-                    builder.append(enchant.getFormattedString());
-                    // Add a comma for the first on the row, followed by a comma
-                    if (i % 2 == 0) {
-                        builder.append(comma);
-                    }
-                    // Create a new line
-                    else {
-                        insertEnchants.add(builder.toString());
-                        builder = new StringBuilder(maxTooltipWidth);
-                    }
-                    i++;
+                comma = SkyblockAddons.getInstance().getConfigValues().getRestrictedColor(Feature.ENCHANTMENT_COMMA_COLOR) + COMMA;
+            } else {
+                comma = COMMA;
+            }
+            // Process each line of enchants
+            int i = 0;
+            StringBuilder builder = new StringBuilder(maxTooltipWidth);
+            for (FormattedEnchant enchant : orderedEnchants) {
+                // Add the enchant
+                builder.append(enchant.getFormattedString());
+                // Add a comma for the first on the row, followed by a comma
+                if (i % 2 == 0) {
+                    builder.append(comma);
                 }
-                // Flush any remaining enchants
-                if (builder.length() >= comma.length()) {
-                    builder.delete(builder.length() - comma.length(), builder.length());
+                // Create a new line
+                else {
                     insertEnchants.add(builder.toString());
+                    builder = new StringBuilder(maxTooltipWidth);
                 }
-            } else if (config.isDisabled(Feature.ENCHANTMENTS_HIGHLIGHT)) {
-                // Get format for comma
-                String comma = COMMA;
-
-                // Process each line of enchants
-                int i = 0;
-                StringBuilder builder = new StringBuilder(maxTooltipWidth);
-                for (FormattedEnchant enchant : orderedEnchants) {
-                    // Add the enchant
-                    builder.append(enchant.getFormattedString());
-                    // Add a comma for the first on the row, followed by a comma
-                    if (i % 2 == 0) {
-                        builder.append(comma);
-                    }
-                    // Create a new line
-                    else {
-                        insertEnchants.add(builder.toString());
-                        builder = new StringBuilder(maxTooltipWidth);
-                    }
-                    i++;
-                }
-                // Flush any remaining enchants
-                if (builder.length() >= comma.length()) {
-                    builder.delete(builder.length() - comma.length(), builder.length());
-                    insertEnchants.add(builder.toString());
-                }
+                i++;
+            }
+            // Flush any remaining enchants
+            if (builder.length() >= comma.length()) {
+                builder.delete(builder.length() - comma.length(), builder.length());
+                insertEnchants.add(builder.toString());
             }
         }
         // Prints each enchantment out on a separate line. Also adds the lore if need be
@@ -319,16 +295,19 @@ public class EnchantManager {
      * Helper method to determine whether we should skip this line in parsing the lore.
      * E.g. we want to skip "Breaking Power X" seen on pickaxes.
      *
-     * @param enchantNBT the enchantments extraAttributes NBT of the item
+     * @param eaNBT the extraAttributes NBT of the item
      * @param s          the line of lore we are parsing
      * @return {@code true} if no enchants on the line are in the enchants table, {@code false} otherwise.
      */
-    public static boolean containsEnchantment(NBTTagCompound enchantNBT, String s) {
+    public static boolean containsEnchantment(NBTTagCompound eaNBT, String s) {
+        NBTTagCompound enchantNBT = eaNBT == null ? null : eaNBT.getCompoundTag("enchantments");
         Matcher m = ENCHANTMENT_PATTERN.matcher(s);
         while (m.find()) {
             Enchant enchant = enchants.getFromLore(m.group("enchant"));
             if (enchantNBT == null || enchantNBT.hasKey(enchant.nbtName)) {
-                return true;
+                NBTTagCompound attributesNBT = eaNBT == null ? null : eaNBT.getCompoundTag("attributes");
+                if (attributesNBT == null || !attributesNBT.hasKey(enchant.nbtName))
+                    return true;
             }
         }
         return false;
@@ -344,7 +323,7 @@ public class EnchantManager {
      * @return {@code null} if {@param unformattedEnchant} is not found in {@param formattedEnchants}, or the colored/styled enchant substring.
      */
     private static String getInputEnchantFormat(String formattedEnchants, String unformattedEnchant) {
-        if (unformattedEnchant.length() == 0) {
+        if (unformattedEnchant.isEmpty()) {
             return "";
         }
         String styles = "kKlLmMnNoO";
@@ -431,7 +410,7 @@ public class EnchantManager {
      * @return the relevant formatting codes in effect after {@param secondFormat}
      */
     private static String mergeFormats(String firstFormat, String secondFormat) {
-        if (secondFormat == null || secondFormat.length() == 0) {
+        if (secondFormat == null || secondFormat.isEmpty()) {
             return firstFormat;
         }
         String styles = "kKlLmMnNoO";
